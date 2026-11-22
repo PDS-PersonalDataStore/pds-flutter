@@ -52,6 +52,23 @@ abstract class PdsFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('getClientCursor() has not been implemented.');
   }
 
+  Future<String> createRelation({
+    required String sessionId,
+    required String relationType,
+    required String sourceEntityId,
+    required String targetEntityId,
+  }) {
+    throw UnimplementedError('createRelation() has not been implemented.');
+  }
+
+  Future<String> createMultimemberRelation({
+    required String sessionId,
+    required String relationType,
+    required String membersJson,
+  }) {
+    throw UnimplementedError('createMultimemberRelation() has not been implemented.');
+  }
+
   Future<bool> isPdsInstalled() {
     throw UnimplementedError('isPdsInstalled() has not been implemented.');
   }

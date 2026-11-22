@@ -80,6 +80,42 @@ class MethodChannelPdsFlutter extends PdsFlutterPlatform {
   }
 
   @override
+  Future<String> createRelation({
+    required String sessionId,
+    required String relationType,
+    required String sourceEntityId,
+    required String targetEntityId,
+  }) async {
+    final result = await methodChannel.invokeMethod<String>(
+      'createRelation',
+      {
+        'sessionId': sessionId,
+        'relationType': relationType,
+        'sourceEntityId': sourceEntityId,
+        'targetEntityId': targetEntityId,
+      },
+    );
+    return result ?? '';
+  }
+
+  @override
+  Future<String> createMultimemberRelation({
+    required String sessionId,
+    required String relationType,
+    required String membersJson,
+  }) async {
+    final result = await methodChannel.invokeMethod<String>(
+      'createMultimemberRelation',
+      {
+        'sessionId': sessionId,
+        'relationType': relationType,
+        'membersJson': membersJson,
+      },
+    );
+    return result ?? '';
+  }
+
+  @override
   Future<bool> isPdsInstalled() async {
     final installed = await methodChannel.invokeMethod<bool>('isPdsInstalled');
     return installed ?? false;

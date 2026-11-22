@@ -60,6 +60,23 @@ class MockPdsFlutterPlatform
   Future<bool> removeClient(String clientId) => Future.value(true);
 
   @override
+  Future<String> createRelation({
+    required String sessionId,
+    required String relationType,
+    required String sourceEntityId,
+    required String targetEntityId,
+  }) =>
+      Future.value('{"status":"Success"}');
+
+  @override
+  Future<String> createMultimemberRelation({
+    required String sessionId,
+    required String relationType,
+    required String membersJson,
+  }) =>
+      Future.value('{"status":"Success"}');
+
+  @override
   Future<PdsAuthResult> requestAuthorization({
     required String clientName,
     Uint8List? publicKey,
@@ -90,5 +107,22 @@ void main() {
     expect(await client.connect(), true);
     expect(await client.isConnected(), true);
     expect(await client.isReady(), true);
+    expect(
+      await client.createRelation(
+        sessionId: 'session_1',
+        relationType: 'item_of',
+        sourceEntityId: 'item_1',
+        targetEntityId: 'receipt_1',
+      ),
+      '{"status":"Success"}',
+    );
+    expect(
+      await client.createMultimemberRelation(
+        sessionId: 'session_1',
+        relationType: 'participant',
+        membersJson: '[{"entity_id":"user_1","role":"owner"}]',
+      ),
+      '{"status":"Success"}',
+    );
   });
 }
