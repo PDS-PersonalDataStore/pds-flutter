@@ -17,6 +17,32 @@ class PdsAndroidClient(private val context: Context) {
     companion object {
         const val PDS_SERVICE_ACTION = "top.tau2c.pds.core.PDS_SERVICE"
         const val PDS_PACKAGE_NAME = "top.tau2c.pds.core"
+
+        const val ACTION_REQUEST_AUTHORIZATION = "top.tau2c.pds.core.REQUEST_AUTHORIZATION"
+        const val EXTRA_CLIENT_NAME = "client_name"
+        const val EXTRA_PUBLIC_KEY = "public_key"
+        const val EXTRA_PERMISSIONS = "permissions"
+
+        const val RESULT_CLIENT_ID = "client_id"
+        const val RESULT_GRANTED_PERMISSIONS = "granted_permissions"
+
+        /**
+         * Creates an Intent to launch the interactive PDS Core authorization popup dialog.
+         */
+        fun createAuthorizationIntent(
+            clientName: String,
+            publicKey: ByteArray? = null,
+            permissions: Array<String> = arrayOf("ReadEntities", "WriteEntities", "ReadBlobs", "WriteBlobs", "ReadHistory")
+        ): Intent {
+            return Intent(ACTION_REQUEST_AUTHORIZATION).apply {
+                setPackage(PDS_PACKAGE_NAME)
+                putExtra(EXTRA_CLIENT_NAME, clientName)
+                if (publicKey != null) {
+                    putExtra(EXTRA_PUBLIC_KEY, publicKey)
+                }
+                putExtra(EXTRA_PERMISSIONS, permissions)
+            }
+        }
     }
 
     private var pdsService: IPdsService? = null

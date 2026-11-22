@@ -58,6 +58,20 @@ class MockPdsFlutterPlatform
 
   @override
   Future<bool> removeClient(String clientId) => Future.value(true);
+
+  @override
+  Future<PdsAuthResult> requestAuthorization({
+    required String clientName,
+    Uint8List? publicKey,
+    List<String>? permissions,
+  }) =>
+      Future.value(
+        const PdsAuthResult(
+          isAuthorized: true,
+          clientId: '01J00000000000000000000000',
+          grantedPermissions: ['ReadEntities', 'WriteEntities'],
+        ),
+      );
 }
 
 void main() {

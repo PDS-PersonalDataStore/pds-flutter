@@ -75,4 +75,40 @@ abstract class PdsFlutterPlatform extends PlatformInterface {
   Future<bool> removeClient(String clientId) {
     throw UnimplementedError('removeClient() has not been implemented.');
   }
+
+  Future<PdsAuthResult> requestAuthorization({
+    required String clientName,
+    Uint8List? publicKey,
+    List<String>? permissions,
+  }) {
+    throw UnimplementedError('requestAuthorization() has not been implemented.');
+  }
+}
+
+/// Result returned from interactive PDS authorization popup dialog.
+class PdsAuthResult {
+  final bool isAuthorized;
+  final String? clientId;
+  final List<String> grantedPermissions;
+
+  const PdsAuthResult({
+    required this.isAuthorized,
+    this.clientId,
+    this.grantedPermissions = const [],
+  });
+
+  factory PdsAuthResult.fromMap(Map<dynamic, dynamic> map) {
+    final status = map['status'] as String?;
+    final clientId = map['clientId'] as String?;
+    final granted = (map['grantedPermissions'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        const [];
+
+    return PdsAuthResult(
+      isAuthorized: status == 'authorized',
+      clientId: clientId,
+      grantedPermissions: granted,
+    );
+  }
 }
