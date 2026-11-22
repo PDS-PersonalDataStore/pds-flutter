@@ -149,6 +149,37 @@ class PdsFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
                 }
                 result.success(client.installPdsApk(apkUriString))
             }
+            "listClients" -> {
+                try {
+                    result.success(client.listClients())
+                } catch (e: Exception) {
+                    result.error("LIST_CLIENTS_ERROR", e.message, null)
+                }
+            }
+            "revokeClient" -> {
+                val clientId = call.argument<String>("clientId")
+                if (clientId == null) {
+                    result.error("INVALID_ARGUMENT", "clientId must not be null", null)
+                    return
+                }
+                try {
+                    result.success(client.revokeClient(clientId))
+                } catch (e: Exception) {
+                    result.error("REVOKE_CLIENT_ERROR", e.message, null)
+                }
+            }
+            "removeClient" -> {
+                val clientId = call.argument<String>("clientId")
+                if (clientId == null) {
+                    result.error("INVALID_ARGUMENT", "clientId must not be null", null)
+                    return
+                }
+                try {
+                    result.success(client.removeClient(clientId))
+                } catch (e: Exception) {
+                    result.error("REMOVE_CLIENT_ERROR", e.message, null)
+                }
+            }
             else -> {
                 result.notImplemented()
             }

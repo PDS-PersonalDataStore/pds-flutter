@@ -164,6 +164,30 @@ class PdsAndroidClient(private val context: Context) {
     }
 
     /**
+     * Returns JSON list of all registered client applications.
+     */
+    fun listClients(): String {
+        val service = pdsService ?: throw IllegalStateException("PDS service is not connected")
+        return service.listClients() ?: "[]"
+    }
+
+    /**
+     * Revokes permissions of a client application.
+     */
+    fun revokeClient(clientId: String): Boolean {
+        val service = pdsService ?: throw IllegalStateException("PDS service is not connected")
+        return service.revokeClient(clientId)
+    }
+
+    /**
+     * Removes a client application record completely.
+     */
+    fun removeClient(clientId: String): Boolean {
+        val service = pdsService ?: throw IllegalStateException("PDS service is not connected")
+        return service.removeClient(clientId)
+    }
+
+    /**
      * Checks if PDS Core package is installed on the device.
      */
     fun isPdsInstalled(): Boolean {

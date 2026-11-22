@@ -49,6 +49,15 @@ class MockPdsFlutterPlatform
   @override
   Stream<String> watchChanges({String entityType = '*'}) =>
       Stream.value('[{"action":"put"}]');
+
+  @override
+  Future<String> listClients() => Future.value('[]');
+
+  @override
+  Future<bool> revokeClient(String clientId) => Future.value(true);
+
+  @override
+  Future<bool> removeClient(String clientId) => Future.value(true);
 }
 
 void main() {

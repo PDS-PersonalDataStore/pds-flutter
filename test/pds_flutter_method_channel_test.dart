@@ -26,6 +26,12 @@ void main() {
           return true;
         case 'installPdsApk':
           return true;
+        case 'listClients':
+          return '[]';
+        case 'revokeClient':
+          return true;
+        case 'removeClient':
+          return true;
         default:
           return null;
       }
@@ -56,5 +62,17 @@ void main() {
 
   test('installPdsApk', () async {
     expect(await platform.installPdsApk('content://test.apk'), true);
+  });
+
+  test('listClients', () async {
+    expect(await platform.listClients(), '[]');
+  });
+
+  test('revokeClient', () async {
+    expect(await platform.revokeClient('test_client_id'), true);
+  });
+
+  test('removeClient', () async {
+    expect(await platform.removeClient('test_client_id'), true);
   });
 }
