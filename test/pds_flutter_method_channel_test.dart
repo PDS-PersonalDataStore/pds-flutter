@@ -32,6 +32,12 @@ void main() {
           return true;
         case 'removeClient':
           return true;
+        case 'requestAuthorization':
+          return {
+            'status': 'authorized',
+            'clientId': '01J00000000000000000000000',
+            'grantedPermissions': ['ReadEntities', 'WriteEntities'],
+          };
         default:
           return null;
       }
@@ -74,5 +80,12 @@ void main() {
 
   test('removeClient', () async {
     expect(await platform.removeClient('test_client_id'), true);
+  });
+
+  test('requestAuthorization', () async {
+    final authResult = await platform.requestAuthorization(clientName: 'Test App');
+    expect(authResult.isAuthorized, true);
+    expect(authResult.clientId, '01J00000000000000000000000');
+    expect(authResult.grantedPermissions, ['ReadEntities', 'WriteEntities']);
   });
 }
