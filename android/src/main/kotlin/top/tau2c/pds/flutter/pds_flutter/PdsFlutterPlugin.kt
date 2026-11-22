@@ -150,6 +150,37 @@ class PdsFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
                     result.error("CURSOR_ERROR", e.message, null)
                 }
             }
+            "createRelation" -> {
+                val sessionId = call.argument<String>("sessionId")
+                val relationType = call.argument<String>("relationType")
+                val sourceEntityId = call.argument<String>("sourceEntityId")
+                val targetEntityId = call.argument<String>("targetEntityId")
+                if (sessionId == null || relationType == null || sourceEntityId == null || targetEntityId == null) {
+                    result.error("INVALID_ARGUMENT", "sessionId, relationType, sourceEntityId, and targetEntityId are required", null)
+                    return
+                }
+                try {
+                    val resJson = client.createRelation(sessionId, relationType, sourceEntityId, targetEntityId)
+                    result.success(resJson)
+                } catch (e: Exception) {
+                    result.error("RELATION_ERROR", e.message, null)
+                }
+            }
+            "createMultimemberRelation" -> {
+                val sessionId = call.argument<String>("sessionId")
+                val relationType = call.argument<String>("relationType")
+                val membersJson = call.argument<String>("membersJson")
+                if (sessionId == null || relationType == null || membersJson == null) {
+                    result.error("INVALID_ARGUMENT", "sessionId, relationType, and membersJson are required", null)
+                    return
+                }
+                try {
+                    val resJson = client.createMultimemberRelation(sessionId, relationType, membersJson)
+                    result.success(resJson)
+                } catch (e: Exception) {
+                    result.error("RELATION_ERROR", e.message, null)
+                }
+            }
             "isPdsInstalled" -> {
                 result.success(client.isPdsInstalled())
             }

@@ -9,6 +9,7 @@ Flutter plugin for personal data store (PDS) Android IPC via Binder and AIDL (`I
 - **Content-Addressed Storage (CAS)**: Binary blob storage and retrieval (`putBlob`, `getBlob`).
 - **Reactive Changes**: Stream real-time database mutations via Binder callbacks (`watchChanges`).
 - **Durable Sessions**: Offline sync cursors (`getPendingChanges`, `acknowledgeChanges`).
+- **Entity Relations**: Binary and multimember relations (`createRelation`, `createMultimemberRelation`).
 - **Client Authorization Dialog**: Request interactive user authorization via PDS dialog (`requestAuthorization`).
 - **Client Management**: List and revoke authorized clients (`listClients`, `revokeClient`, `removeClient`).
 - **PDS Lifecycle Helper**: Detect installation status and invoke package installer (`isPdsInstalled`, `installPdsApk`).

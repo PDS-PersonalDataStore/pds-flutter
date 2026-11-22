@@ -38,6 +38,10 @@ void main() {
             'clientId': '01J00000000000000000000000',
             'grantedPermissions': ['ReadEntities', 'WriteEntities'],
           };
+        case 'createRelation':
+          return '{"status":"Success","relation_id":"rel_123"}';
+        case 'createMultimemberRelation':
+          return '{"status":"Success","relation_id":"rel_456"}';
         default:
           return null;
       }
@@ -87,5 +91,24 @@ void main() {
     expect(authResult.isAuthorized, true);
     expect(authResult.clientId, '01J00000000000000000000000');
     expect(authResult.grantedPermissions, ['ReadEntities', 'WriteEntities']);
+  });
+
+  test('createRelation', () async {
+    final response = await platform.createRelation(
+      sessionId: 'sess_1',
+      relationType: 'belongs_to',
+      sourceEntityId: 'ent_1',
+      targetEntityId: 'ent_2',
+    );
+    expect(response, '{"status":"Success","relation_id":"rel_123"}');
+  });
+
+  test('createMultimemberRelation', () async {
+    final response = await platform.createMultimemberRelation(
+      sessionId: 'sess_1',
+      relationType: 'members_of',
+      membersJson: '[{"entity_id":"ent_1","role":"admin"}]',
+    );
+    expect(response, '{"status":"Success","relation_id":"rel_456"}');
   });
 }
