@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'pds_flutter_platform_interface.dart';
+export 'pds_flutter_platform_interface.dart' show PdsAuthResult;
 
 /// High-level Flutter client for interacting with the PDS Core service.
 class PdsClient {
@@ -131,6 +132,18 @@ class PdsClient {
   /// Removes a client application record completely.
   Future<bool> removeClient(String clientId) =>
       _platform.removeClient(clientId);
+
+  /// Requests interactive client authorization via PDS Core popup dialog.
+  Future<PdsAuthResult> requestAuthorization({
+    required String clientName,
+    Uint8List? publicKey,
+    List<String>? permissions,
+  }) =>
+      _platform.requestAuthorization(
+        clientName: clientName,
+        publicKey: publicKey,
+        permissions: permissions,
+      );
 }
 
 /// Alias for PdsClient to maintain compatibility with plugin conventions.

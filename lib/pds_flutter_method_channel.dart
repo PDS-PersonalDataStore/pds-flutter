@@ -124,4 +124,24 @@ class MethodChannelPdsFlutter extends PdsFlutterPlatform {
     );
     return result ?? false;
   }
+
+  @override
+  Future<PdsAuthResult> requestAuthorization({
+    required String clientName,
+    Uint8List? publicKey,
+    List<String>? permissions,
+  }) async {
+    final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
+      'requestAuthorization',
+      {
+        'clientName': clientName,
+        'publicKey': publicKey,
+        'permissions': permissions,
+      },
+    );
+    if (result == null) {
+      return const PdsAuthResult(isAuthorized: false);
+    }
+    return PdsAuthResult.fromMap(result);
+  }
 }
