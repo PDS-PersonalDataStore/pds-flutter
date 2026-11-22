@@ -120,6 +120,17 @@ class PdsClient {
   /// Prompts Android system package installer to install PDS Core from APK URI.
   Future<bool> installPdsApk(String apkUriString) =>
       _platform.installPdsApk(apkUriString);
+
+  /// Returns JSON list of all registered client applications.
+  Future<String> listClients() => _platform.listClients();
+
+  /// Revokes permissions of a client application.
+  Future<bool> revokeClient(String clientId) =>
+      _platform.revokeClient(clientId);
+
+  /// Removes a client application record completely.
+  Future<bool> removeClient(String clientId) =>
+      _platform.removeClient(clientId);
 }
 
 /// Alias for PdsClient to maintain compatibility with plugin conventions.

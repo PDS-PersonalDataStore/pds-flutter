@@ -100,4 +100,28 @@ class MethodChannelPdsFlutter extends PdsFlutterPlatform {
         .receiveBroadcastStream({'entityType': entityType})
         .map((event) => event.toString());
   }
+
+  @override
+  Future<String> listClients() async {
+    final result = await methodChannel.invokeMethod<String>('listClients');
+    return result ?? '[]';
+  }
+
+  @override
+  Future<bool> revokeClient(String clientId) async {
+    final result = await methodChannel.invokeMethod<bool>(
+      'revokeClient',
+      {'clientId': clientId},
+    );
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> removeClient(String clientId) async {
+    final result = await methodChannel.invokeMethod<bool>(
+      'removeClient',
+      {'clientId': clientId},
+    );
+    return result ?? false;
+  }
 }

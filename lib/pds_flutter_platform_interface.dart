@@ -63,4 +63,16 @@ abstract class PdsFlutterPlatform extends PlatformInterface {
   Stream<String> watchChanges({String entityType = '*'}) {
     throw UnimplementedError('watchChanges() has not been implemented.');
   }
+
+  Future<String> listClients() {
+    throw UnimplementedError('listClients() has not been implemented.');
+  }
+
+  Future<bool> revokeClient(String clientId) {
+    throw UnimplementedError('revokeClient() has not been implemented.');
+  }
+
+  Future<bool> removeClient(String clientId) {
+    throw UnimplementedError('removeClient() has not been implemented.');
+  }
 }

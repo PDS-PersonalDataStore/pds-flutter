@@ -39,4 +39,19 @@ interface IPdsService {
      * Unsubscribes from storage changes.
      */
     void unregisterChangeListener(IPdsChangeListener listener);
+
+    /**
+     * Returns JSON list of all registered client applications.
+     */
+    String listClients();
+
+    /**
+     * Revokes permissions of a client application.
+     */
+    boolean revokeClient(String clientId);
+
+    /**
+     * Removes a client application record completely.
+     */
+    boolean removeClient(String clientId);
 }
