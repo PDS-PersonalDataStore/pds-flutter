@@ -115,6 +115,32 @@ class PdsClient {
   Future<String> getClientCursor(String sessionId) =>
       _platform.getClientCursor(sessionId);
 
+  /// Creates a binary relation between source and target entities.
+  Future<String> createRelation({
+    required String sessionId,
+    required String relationType,
+    required String sourceEntityId,
+    required String targetEntityId,
+  }) =>
+      _platform.createRelation(
+        sessionId: sessionId,
+        relationType: relationType,
+        sourceEntityId: sourceEntityId,
+        targetEntityId: targetEntityId,
+      );
+
+  /// Creates a multimember relation with custom roles (Engine 1.5).
+  Future<String> createMultimemberRelation({
+    required String sessionId,
+    required String relationType,
+    required String membersJson,
+  }) =>
+      _platform.createMultimemberRelation(
+        sessionId: sessionId,
+        relationType: relationType,
+        membersJson: membersJson,
+      );
+
   /// Checks if PDS Core package is installed on the device.
   Future<bool> isPdsInstalled() => _platform.isPdsInstalled();
 

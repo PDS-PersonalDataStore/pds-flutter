@@ -190,6 +190,32 @@ class PdsAndroidClient(private val context: Context) {
     }
 
     /**
+     * Creates a binary relation between source and target entities.
+     */
+    fun createRelation(
+        sessionId: String,
+        relationType: String,
+        sourceEntityId: String,
+        targetEntityId: String
+    ): String {
+        val req = """{"action":"create_relation","session_id":"$sessionId","relation_type":"$relationType","source":"$sourceEntityId","target":"$targetEntityId"}"""
+        return executeRawRequest(req)
+    }
+
+    /**
+     * Creates a multimember relation with custom roles (Engine 1.5).
+     * @param membersJson JSON array of members, e.g. '[{"entity_id":"...","role":"author"}]'
+     */
+    fun createMultimemberRelation(
+        sessionId: String,
+        relationType: String,
+        membersJson: String
+    ): String {
+        val req = """{"action":"create_relation","session_id":"$sessionId","relation_type":"$relationType","members":$membersJson}"""
+        return executeRawRequest(req)
+    }
+
+    /**
      * Returns JSON list of all registered client applications.
      */
     fun listClients(): String {
