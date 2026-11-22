@@ -9,6 +9,8 @@ Flutter plugin for personal data store (PDS) Android IPC via Binder and AIDL (`I
 - **Content-Addressed Storage (CAS)**: Binary blob storage and retrieval (`putBlob`, `getBlob`).
 - **Reactive Changes**: Stream real-time database mutations via Binder callbacks (`watchChanges`).
 - **Durable Sessions**: Offline sync cursors (`getPendingChanges`, `acknowledgeChanges`).
+- **Client Authorization Dialog**: Request interactive user authorization via PDS dialog (`requestAuthorization`).
+- **Client Management**: List and revoke authorized clients (`listClients`, `revokeClient`, `removeClient`).
 - **PDS Lifecycle Helper**: Detect installation status and invoke package installer (`isPdsInstalled`, `installPdsApk`).
 
 ## Installation
@@ -57,7 +59,18 @@ Future<void> main() async {
     return;
   }
 
-  // 3. Store a receipt record
+  // 3. Request user authorization interactively
+  final authResult = await client.requestAuthorization(
+    clientName: 'My Flutter App',
+    permissions: const ['read', 'write'],
+  );
+  if (!authResult.isAuthorized) {
+    print('User denied authorization');
+    return;
+  }
+  print('Authorized with client ID: ${authResult.clientId}');
+
+  // 4. Store a receipt record
   final response = await client.put('receipts', {
     'id': '01JG...',
     'store': 'Lidl',
@@ -66,16 +79,16 @@ Future<void> main() async {
   });
   print('Saved record: $response');
 
-  // 4. Watch real-time changes
+  // 5. Watch real-time changes
   client.watchChanges(entityType: 'receipts').listen((eventJson) {
     print('Received change event: $eventJson');
   });
 
-  // 5. Query records
+  // 6. Query records
   final queryResult = await client.query('receipts');
   print('Receipts query: $queryResult');
 
-  // 6. Disconnect
+  // 7. Disconnect
   await client.disconnect();
 }
 ```
