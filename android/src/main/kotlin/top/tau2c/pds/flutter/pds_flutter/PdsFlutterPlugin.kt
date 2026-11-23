@@ -181,6 +181,66 @@ class PdsFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
                     result.error("RELATION_ERROR", e.message, null)
                 }
             }
+            "putBlob" -> {
+                val sessionId = call.argument<String>("sessionId")
+                val data = call.argument<ByteArray>("data")
+                val mediaType = call.argument<String>("mediaType")
+                if (sessionId == null || data == null) {
+                    result.error("INVALID_ARGUMENT", "sessionId and data are required", null)
+                    return
+                }
+                try {
+                    val resJson = client.putBlob(sessionId, data, mediaType)
+                    result.success(resJson)
+                } catch (e: Exception) {
+                    result.error("BLOB_ERROR", e.message, null)
+                }
+            }
+            "getBlob" -> {
+                val sessionId = call.argument<String>("sessionId")
+                val blobId = call.argument<String>("blobId")
+                if (sessionId == null || blobId == null) {
+                    result.error("INVALID_ARGUMENT", "sessionId and blobId are required", null)
+                    return
+                }
+                try {
+                    val bytes = client.getBlob(sessionId, blobId)
+                    result.success(bytes)
+                } catch (e: Exception) {
+                    result.error("BLOB_ERROR", e.message, null)
+                }
+            }
+            "putEncryptedBlob" -> {
+                val sessionId = call.argument<String>("sessionId")
+                val plaintext = call.argument<ByteArray>("plaintext")
+                val keyAlias = call.argument<String>("keyAlias")
+                val mediaType = call.argument<String>("mediaType") ?: "application/octet-stream"
+                if (sessionId == null || plaintext == null || keyAlias == null) {
+                    result.error("INVALID_ARGUMENT", "sessionId, plaintext, and keyAlias are required", null)
+                    return
+                }
+                try {
+                    val resJson = client.putEncryptedBlob(sessionId, plaintext, keyAlias, mediaType)
+                    result.success(resJson)
+                } catch (e: Exception) {
+                    result.error("CRYPTO_ERROR", e.message, null)
+                }
+            }
+            "getEncryptedBlob" -> {
+                val sessionId = call.argument<String>("sessionId")
+                val blobId = call.argument<String>("blobId")
+                val keyAlias = call.argument<String>("keyAlias")
+                if (sessionId == null || blobId == null || keyAlias == null) {
+                    result.error("INVALID_ARGUMENT", "sessionId, blobId, and keyAlias are required", null)
+                    return
+                }
+                try {
+                    val decryptedBytes = client.getEncryptedBlob(sessionId, blobId, keyAlias)
+                    result.success(decryptedBytes)
+                } catch (e: Exception) {
+                    result.error("CRYPTO_ERROR", e.message, null)
+                }
+            }
             "isPdsInstalled" -> {
                 result.success(client.isPdsInstalled())
             }

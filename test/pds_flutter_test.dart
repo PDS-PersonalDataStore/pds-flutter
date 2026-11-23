@@ -77,6 +77,38 @@ class MockPdsFlutterPlatform
       Future.value('{"status":"Success"}');
 
   @override
+  Future<String> putBlob({
+    required String sessionId,
+    required Uint8List data,
+    String? mediaType,
+  }) =>
+      Future.value('{"status":"Success","blob_id":"b_123"}');
+
+  @override
+  Future<Uint8List> getBlob({
+    required String sessionId,
+    required String blobId,
+  }) =>
+      Future.value(Uint8List.fromList([1, 2, 3]));
+
+  @override
+  Future<String> putEncryptedBlob({
+    required String sessionId,
+    required Uint8List plaintext,
+    required String keyAlias,
+    String? mediaType,
+  }) =>
+      Future.value('{"status":"Success","blob_id":"b_enc_123"}');
+
+  @override
+  Future<Uint8List> getEncryptedBlob({
+    required String sessionId,
+    required String blobId,
+    required String keyAlias,
+  }) =>
+      Future.value(Uint8List.fromList([4, 5, 6]));
+
+  @override
   Future<PdsAuthResult> requestAuthorization({
     required String clientName,
     Uint8List? publicKey,
@@ -123,6 +155,36 @@ void main() {
         membersJson: '[{"entity_id":"user_1","role":"owner"}]',
       ),
       '{"status":"Success"}',
+    );
+    expect(
+      await client.putBlobWithSession(
+        sessionId: 'session_1',
+        data: Uint8List.fromList([1, 2, 3]),
+      ),
+      '{"status":"Success","blob_id":"b_123"}',
+    );
+    expect(
+      await client.getBlobWithSession(
+        sessionId: 'session_1',
+        blobId: 'b_123',
+      ),
+      Uint8List.fromList([1, 2, 3]),
+    );
+    expect(
+      await client.putEncryptedBlob(
+        sessionId: 'session_1',
+        plaintext: Uint8List.fromList([4, 5, 6]),
+        keyAlias: 'key_1',
+      ),
+      '{"status":"Success","blob_id":"b_enc_123"}',
+    );
+    expect(
+      await client.getEncryptedBlob(
+        sessionId: 'session_1',
+        blobId: 'b_enc_123',
+        keyAlias: 'key_1',
+      ),
+      Uint8List.fromList([4, 5, 6]),
     );
   });
 }

@@ -216,6 +216,63 @@ class PdsAndroidClient(private val context: Context) {
     }
 
     /**
+     * Stores raw binary data as a content-addressed blob.
+     * Returns the PDS JSON response containing the BlobDescriptor.
+     */
+    fun putBlob(sessionId: String, data: ByteArray, mediaType: String? = null): String {
+        val mediaTypeJson = if (mediaType != null) ""","media_type":"$mediaType"""" else ""
+        val dataArrayJson = data.joinToString(prefix = "[", postfix = "]", separator = ",") { (it.toInt() and 0xFF).toString() }
+        val req = """{"action":"put_blob","session_id":"$sessionId","data":$dataArrayJson$mediaTypeJson}"""
+        return executeRawRequest(req)
+    }
+
+    /**
+     * Retrieves raw binary data by blob ID.
+     * Returns the byte array of the blob.
+     */
+    fun getBlob(sessionId: String, blobId: String): ByteArray {
+        val req = """{"action":"get_blob","session_id":"$sessionId","blob_id":"$blobId"}"""
+        val responseJson = executeRawRequest(req)
+        val json = org.json.JSONObject(responseJson)
+        if (json.has("status") && json.getString("status") == "Error") {
+            throw java.io.IOException("Failed to get blob: ${json.optString("payload")}")
+        }
+        val payloadArray = json.getJSONArray("payload")
+        val bytes = ByteArray(payloadArray.length())
+        for (i in 0 until payloadArray.length()) {
+            bytes[i] = payloadArray.getInt(i).toByte()
+        }
+        return bytes
+    }
+
+    /**
+     * Encrypts plaintext data using client-side AES-256-GCM via AndroidKeyStore
+     * and stores the ciphertext as a blob in PDS Core (Zero-Knowledge E2EE).
+     */
+    fun putEncryptedBlob(
+        sessionId: String,
+        plaintext: ByteArray,
+        keyAlias: String,
+        mediaType: String? = "application/octet-stream"
+    ): String {
+        val encryptedData = PdsCryptoManager.encrypt(plaintext, keyAlias)
+        return putBlob(sessionId, encryptedData, mediaType)
+    }
+
+    /**
+     * Retrieves an encrypted blob from PDS Core and decrypts it client-side
+     * using the specified AndroidKeyStore key alias.
+     */
+    fun getEncryptedBlob(
+        sessionId: String,
+        blobId: String,
+        keyAlias: String
+    ): ByteArray {
+        val encryptedBytes = getBlob(sessionId, blobId)
+        return PdsCryptoManager.decrypt(encryptedBytes, keyAlias)
+    }
+
+    /**
      * Returns JSON list of all registered client applications.
      */
     fun listClients(): String {
