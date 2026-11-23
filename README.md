@@ -7,6 +7,7 @@ Flutter plugin for personal data store (PDS) Android IPC via Binder and AIDL (`I
 - **IPC Service Binding**: Binds to background `top.tau2c.pds.core` system service.
 - **Entity Storage**: CRUD operations (`put`, `get`, `query`, `delete`) using JSON protocols.
 - **Content-Addressed Storage (CAS)**: Binary blob storage and retrieval (`putBlob`, `getBlob`).
+- **Encrypted Blobs (E2EE)**: Zero-knowledge client-side AES-256-GCM encryption with AndroidKeyStore (`putEncryptedBlob`, `getEncryptedBlob`).
 - **Reactive Changes**: Stream real-time database mutations via Binder callbacks (`watchChanges`).
 - **Durable Sessions**: Offline sync cursors (`getPendingChanges`, `acknowledgeChanges`).
 - **Entity Relations**: Binary and multimember relations (`createRelation`, `createMultimemberRelation`).

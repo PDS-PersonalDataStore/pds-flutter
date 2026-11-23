@@ -69,6 +69,38 @@ abstract class PdsFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('createMultimemberRelation() has not been implemented.');
   }
 
+  Future<String> putBlob({
+    required String sessionId,
+    required Uint8List data,
+    String? mediaType,
+  }) {
+    throw UnimplementedError('putBlob() has not been implemented.');
+  }
+
+  Future<Uint8List> getBlob({
+    required String sessionId,
+    required String blobId,
+  }) {
+    throw UnimplementedError('getBlob() has not been implemented.');
+  }
+
+  Future<String> putEncryptedBlob({
+    required String sessionId,
+    required Uint8List plaintext,
+    required String keyAlias,
+    String? mediaType,
+  }) {
+    throw UnimplementedError('putEncryptedBlob() has not been implemented.');
+  }
+
+  Future<Uint8List> getEncryptedBlob({
+    required String sessionId,
+    required String blobId,
+    required String keyAlias,
+  }) {
+    throw UnimplementedError('getEncryptedBlob() has not been implemented.');
+  }
+
   Future<bool> isPdsInstalled() {
     throw UnimplementedError('isPdsInstalled() has not been implemented.');
   }

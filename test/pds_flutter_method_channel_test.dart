@@ -42,6 +42,14 @@ void main() {
           return '{"status":"Success","relation_id":"rel_123"}';
         case 'createMultimemberRelation':
           return '{"status":"Success","relation_id":"rel_456"}';
+        case 'putBlob':
+          return '{"status":"Success","blob_id":"b_123"}';
+        case 'getBlob':
+          return Uint8List.fromList([1, 2, 3]);
+        case 'putEncryptedBlob':
+          return '{"status":"Success","blob_id":"b_enc_123"}';
+        case 'getEncryptedBlob':
+          return Uint8List.fromList([4, 5, 6]);
         default:
           return null;
       }
@@ -110,5 +118,40 @@ void main() {
       membersJson: '[{"entity_id":"ent_1","role":"admin"}]',
     );
     expect(response, '{"status":"Success","relation_id":"rel_456"}');
+  });
+
+  test('putBlob', () async {
+    final response = await platform.putBlob(
+      sessionId: 'sess_1',
+      data: Uint8List.fromList([1, 2, 3]),
+      mediaType: 'image/png',
+    );
+    expect(response, '{"status":"Success","blob_id":"b_123"}');
+  });
+
+  test('getBlob', () async {
+    final bytes = await platform.getBlob(
+      sessionId: 'sess_1',
+      blobId: 'b_123',
+    );
+    expect(bytes, Uint8List.fromList([1, 2, 3]));
+  });
+
+  test('putEncryptedBlob', () async {
+    final response = await platform.putEncryptedBlob(
+      sessionId: 'sess_1',
+      plaintext: Uint8List.fromList([4, 5, 6]),
+      keyAlias: 'key_master',
+    );
+    expect(response, '{"status":"Success","blob_id":"b_enc_123"}');
+  });
+
+  test('getEncryptedBlob', () async {
+    final bytes = await platform.getEncryptedBlob(
+      sessionId: 'sess_1',
+      blobId: 'b_enc_123',
+      keyAlias: 'key_master',
+    );
+    expect(bytes, Uint8List.fromList([4, 5, 6]));
   });
 }
