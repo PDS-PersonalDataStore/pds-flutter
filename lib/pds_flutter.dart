@@ -141,6 +141,56 @@ class PdsClient {
         membersJson: membersJson,
       );
 
+  /// Stores raw binary data as a content-addressed blob with a session.
+  Future<String> putBlobWithSession({
+    required String sessionId,
+    required Uint8List data,
+    String? mediaType,
+  }) =>
+      _platform.putBlob(
+        sessionId: sessionId,
+        data: data,
+        mediaType: mediaType,
+      );
+
+  /// Retrieves raw binary data by blob ID with a session.
+  Future<Uint8List> getBlobWithSession({
+    required String sessionId,
+    required String blobId,
+  }) =>
+      _platform.getBlob(
+        sessionId: sessionId,
+        blobId: blobId,
+      );
+
+  /// Encrypts data client-side with AES-256-GCM via Android KeyStore
+  /// and stores ciphertext in PDS Core (Zero-Knowledge E2EE).
+  Future<String> putEncryptedBlob({
+    required String sessionId,
+    required Uint8List plaintext,
+    required String keyAlias,
+    String? mediaType,
+  }) =>
+      _platform.putEncryptedBlob(
+        sessionId: sessionId,
+        plaintext: plaintext,
+        keyAlias: keyAlias,
+        mediaType: mediaType,
+      );
+
+  /// Retrieves an encrypted blob from PDS Core and decrypts it client-side
+  /// using the specified Android KeyStore key alias.
+  Future<Uint8List> getEncryptedBlob({
+    required String sessionId,
+    required String blobId,
+    required String keyAlias,
+  }) =>
+      _platform.getEncryptedBlob(
+        sessionId: sessionId,
+        blobId: blobId,
+        keyAlias: keyAlias,
+      );
+
   /// Checks if PDS Core package is installed on the device.
   Future<bool> isPdsInstalled() => _platform.isPdsInstalled();
 

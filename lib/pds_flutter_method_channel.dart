@@ -116,6 +116,74 @@ class MethodChannelPdsFlutter extends PdsFlutterPlatform {
   }
 
   @override
+  Future<String> putBlob({
+    required String sessionId,
+    required Uint8List data,
+    String? mediaType,
+  }) async {
+    final result = await methodChannel.invokeMethod<String>(
+      'putBlob',
+      {
+        'sessionId': sessionId,
+        'data': data,
+        'mediaType': ?mediaType,
+      },
+    );
+    return result ?? '';
+  }
+
+  @override
+  Future<Uint8List> getBlob({
+    required String sessionId,
+    required String blobId,
+  }) async {
+    final result = await methodChannel.invokeMethod<Uint8List>(
+      'getBlob',
+      {
+        'sessionId': sessionId,
+        'blobId': blobId,
+      },
+    );
+    return result ?? Uint8List(0);
+  }
+
+  @override
+  Future<String> putEncryptedBlob({
+    required String sessionId,
+    required Uint8List plaintext,
+    required String keyAlias,
+    String? mediaType,
+  }) async {
+    final result = await methodChannel.invokeMethod<String>(
+      'putEncryptedBlob',
+      {
+        'sessionId': sessionId,
+        'plaintext': plaintext,
+        'keyAlias': keyAlias,
+        'mediaType': ?mediaType,
+      },
+    );
+    return result ?? '';
+  }
+
+  @override
+  Future<Uint8List> getEncryptedBlob({
+    required String sessionId,
+    required String blobId,
+    required String keyAlias,
+  }) async {
+    final result = await methodChannel.invokeMethod<Uint8List>(
+      'getEncryptedBlob',
+      {
+        'sessionId': sessionId,
+        'blobId': blobId,
+        'keyAlias': keyAlias,
+      },
+    );
+    return result ?? Uint8List(0);
+  }
+
+  @override
   Future<bool> isPdsInstalled() async {
     final installed = await methodChannel.invokeMethod<bool>('isPdsInstalled');
     return installed ?? false;
