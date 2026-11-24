@@ -95,14 +95,23 @@ Future<void> main() async {
 }
 ```
 
+## Documentation
+
+- [Architecture Guide](docs/architecture.md): Multi-layer IPC architecture, Pigeon typed host API, and Binder service integration.
+- [Error Handling Guide](docs/error-handling.md): Common exceptions, error codes, and recovery strategies.
+- [API Reference](docs/api-reference.md): Detailed reference of all methods and parameters.
+
 ## Architecture
 
 The plugin implements the following communication flow:
 
 1. **Dart API**: High-level async interface (`PdsClient`).
-2. **Platform Channel**: MethodChannel communication to Android platform layer.
-3. **Android Client (`PdsAndroidClient.kt`)**: Binds to `top.tau2c.pds.core.PdsService` intent.
-4. **AIDL Interface**: IPC calls via generated `IPdsService` Binder interface and `IPdsChangeListener`.
+2. **Pigeon Typed Host API**: Auto-generated type-safe IPC layer (`PdsHostApi`).
+3. **Android Plugin Layer (`PdsFlutterPlugin.kt`)**: Activity-aware foreground launcher and stream handler.
+4. **Android Client (`PdsAndroidClient.kt`)**: Binds to `top.tau2c.pds.core.PdsService` intent with `PdsCryptoManager` E2EE.
+5. **AIDL Interface**: IPC calls via generated `IPdsService` Binder interface and `IPdsChangeListener`.
+
+See [docs/architecture.md](docs/architecture.md) for full architectural diagrams and details.
 
 ## License
 
