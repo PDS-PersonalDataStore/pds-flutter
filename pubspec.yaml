@@ -1,7 +1,7 @@
 name: pds_flutter
-description: "A new Flutter plugin project."
-version: 0.0.1
-homepage:
+description: "Flutter plugin for personal data store (PDS) Android IPC via Binder and AIDL."
+version: 1.9.0
+homepage: https://github.com/Tau2C/pds-flutter
 
 environment:
   sdk: ^3.11.5
