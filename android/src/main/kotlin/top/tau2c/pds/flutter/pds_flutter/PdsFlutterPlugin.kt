@@ -8,29 +8,27 @@ import android.os.Looper
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry
 import top.tau2c.pds.client.PdsAndroidClient
 
 /**
- * Android implementation of the PDS Flutter plugin bridging Flutter to PdsAndroidClient.
+ * Android implementation of the PDS Flutter plugin bridging Flutter to PdsAndroidClient
+ * via Pigeon-generated typed host API and EventChannel for reactive streams.
  */
-class PdsFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler, ActivityAware, PluginRegistry.ActivityResultListener {
+class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, ActivityAware, PluginRegistry.ActivityResultListener {
 
     companion object {
         private const val REQUEST_CODE_AUTH = 4284
     }
 
-    private lateinit var channel: MethodChannel
     private lateinit var eventChannel: EventChannel
+    private lateinit var binaryMessenger: BinaryMessenger
     private lateinit var context: Context
     private var activity: Activity? = null
     private var activityBinding: ActivityPluginBinding? = null
-    private var pendingAuthResult: Result? = null
+    private var pendingAuthCallback: ((Result<PdsAuthResultDto>) -> Unit)? = null
     private var pdsClient: PdsAndroidClient? = null
 
     private var eventSink: EventChannel.EventSink? = null
@@ -44,303 +42,297 @@ class PdsFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
+        binaryMessenger = flutterPluginBinding.binaryMessenger
         pdsClient = PdsAndroidClient(context)
 
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "top.tau2c.pds/client")
-        channel.setMethodCallHandler(this)
+        PdsHostApi.setUp(binaryMessenger, this)
 
-        eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "top.tau2c.pds/events")
+        eventChannel = EventChannel(binaryMessenger, "top.tau2c.pds/events")
         eventChannel.setStreamHandler(this)
     }
 
-    override fun onMethodCall(call: MethodCall, result: Result) {
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        PdsHostApi.setUp(binaryMessenger, null)
+        eventChannel.setStreamHandler(null)
+        pdsClient?.disconnect()
+        pdsClient = null
+    }
+
+    // PdsHostApi Implementation
+
+    override fun connect(callback: (Result<Boolean>) -> Unit) {
         val client = pdsClient ?: run {
-            result.error("NOT_INITIALIZED", "PDS Client is not initialized", null)
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
             return
         }
-
-        when (call.method) {
-            "connect" -> {
-                try {
-                    val connected = client.connect()
-                    result.success(connected)
-                } catch (e: Exception) {
-                    result.error("CONNECT_ERROR", e.message, null)
-                }
-            }
-            "disconnect" -> {
-                try {
-                    client.disconnect()
-                    result.success(true)
-                } catch (e: Exception) {
-                    result.error("DISCONNECT_ERROR", e.message, null)
-                }
-            }
-            "isConnected" -> {
-                result.success(client.isConnected())
-            }
-            "isReady" -> {
-                result.success(client.isReady())
-            }
-            "executeRawRequest" -> {
-                val requestJson = call.argument<String>("requestJson")
-                if (requestJson == null) {
-                    result.error("INVALID_ARGUMENT", "requestJson must not be null", null)
-                    return
-                }
-                try {
-                    val responseJson = client.executeRawRequest(requestJson)
-                    result.success(responseJson)
-                } catch (e: Exception) {
-                    result.error("EXECUTE_ERROR", e.message, null)
-                }
-            }
-            "register" -> {
-                val clientName = call.argument<String>("clientName")
-                val publicKey = call.argument<ByteArray>("publicKey")
-                if (clientName == null || publicKey == null) {
-                    result.error("INVALID_ARGUMENT", "clientName and publicKey are required", null)
-                    return
-                }
-                try {
-                    val clientId = client.register(clientName, publicKey)
-                    result.success(clientId)
-                } catch (e: Exception) {
-                    result.error("REGISTER_ERROR", e.message, null)
-                }
-            }
-            "getPendingChanges" -> {
-                val sessionId = call.argument<String>("sessionId")
-                val limit = call.argument<Int>("limit")
-                if (sessionId == null) {
-                    result.error("INVALID_ARGUMENT", "sessionId must not be null", null)
-                    return
-                }
-                try {
-                    val pendingJson = client.getPendingChanges(sessionId, limit)
-                    result.success(pendingJson)
-                } catch (e: Exception) {
-                    result.error("PENDING_CHANGES_ERROR", e.message, null)
-                }
-            }
-            "acknowledgeChanges" -> {
-                val sessionId = call.argument<String>("sessionId")
-                val changeId = call.argument<String>("changeId")
-                if (sessionId == null || changeId == null) {
-                    result.error("INVALID_ARGUMENT", "sessionId and changeId are required", null)
-                    return
-                }
-                try {
-                    val ackJson = client.acknowledgeChanges(sessionId, changeId)
-                    result.success(ackJson)
-                } catch (e: Exception) {
-                    result.error("ACK_ERROR", e.message, null)
-                }
-            }
-            "getClientCursor" -> {
-                val sessionId = call.argument<String>("sessionId")
-                if (sessionId == null) {
-                    result.error("INVALID_ARGUMENT", "sessionId must not be null", null)
-                    return
-                }
-                try {
-                    val cursorJson = client.getClientCursor(sessionId)
-                    result.success(cursorJson)
-                } catch (e: Exception) {
-                    result.error("CURSOR_ERROR", e.message, null)
-                }
-            }
-            "createRelation" -> {
-                val sessionId = call.argument<String>("sessionId")
-                val relationType = call.argument<String>("relationType")
-                val sourceEntityId = call.argument<String>("sourceEntityId")
-                val targetEntityId = call.argument<String>("targetEntityId")
-                if (sessionId == null || relationType == null || sourceEntityId == null || targetEntityId == null) {
-                    result.error("INVALID_ARGUMENT", "sessionId, relationType, sourceEntityId, and targetEntityId are required", null)
-                    return
-                }
-                try {
-                    val resJson = client.createRelation(sessionId, relationType, sourceEntityId, targetEntityId)
-                    result.success(resJson)
-                } catch (e: Exception) {
-                    result.error("RELATION_ERROR", e.message, null)
-                }
-            }
-            "createMultimemberRelation" -> {
-                val sessionId = call.argument<String>("sessionId")
-                val relationType = call.argument<String>("relationType")
-                val membersJson = call.argument<String>("membersJson")
-                if (sessionId == null || relationType == null || membersJson == null) {
-                    result.error("INVALID_ARGUMENT", "sessionId, relationType, and membersJson are required", null)
-                    return
-                }
-                try {
-                    val resJson = client.createMultimemberRelation(sessionId, relationType, membersJson)
-                    result.success(resJson)
-                } catch (e: Exception) {
-                    result.error("RELATION_ERROR", e.message, null)
-                }
-            }
-            "putBlob" -> {
-                val sessionId = call.argument<String>("sessionId")
-                val data = call.argument<ByteArray>("data")
-                val mediaType = call.argument<String>("mediaType")
-                if (sessionId == null || data == null) {
-                    result.error("INVALID_ARGUMENT", "sessionId and data are required", null)
-                    return
-                }
-                try {
-                    val resJson = client.putBlob(sessionId, data, mediaType)
-                    result.success(resJson)
-                } catch (e: Exception) {
-                    result.error("BLOB_ERROR", e.message, null)
-                }
-            }
-            "getBlob" -> {
-                val sessionId = call.argument<String>("sessionId")
-                val blobId = call.argument<String>("blobId")
-                if (sessionId == null || blobId == null) {
-                    result.error("INVALID_ARGUMENT", "sessionId and blobId are required", null)
-                    return
-                }
-                try {
-                    val bytes = client.getBlob(sessionId, blobId)
-                    result.success(bytes)
-                } catch (e: Exception) {
-                    result.error("BLOB_ERROR", e.message, null)
-                }
-            }
-            "putEncryptedBlob" -> {
-                val sessionId = call.argument<String>("sessionId")
-                val plaintext = call.argument<ByteArray>("plaintext")
-                val keyAlias = call.argument<String>("keyAlias")
-                val mediaType = call.argument<String>("mediaType") ?: "application/octet-stream"
-                if (sessionId == null || plaintext == null || keyAlias == null) {
-                    result.error("INVALID_ARGUMENT", "sessionId, plaintext, and keyAlias are required", null)
-                    return
-                }
-                try {
-                    val resJson = client.putEncryptedBlob(sessionId, plaintext, keyAlias, mediaType)
-                    result.success(resJson)
-                } catch (e: Exception) {
-                    result.error("CRYPTO_ERROR", e.message, null)
-                }
-            }
-            "getEncryptedBlob" -> {
-                val sessionId = call.argument<String>("sessionId")
-                val blobId = call.argument<String>("blobId")
-                val keyAlias = call.argument<String>("keyAlias")
-                if (sessionId == null || blobId == null || keyAlias == null) {
-                    result.error("INVALID_ARGUMENT", "sessionId, blobId, and keyAlias are required", null)
-                    return
-                }
-                try {
-                    val decryptedBytes = client.getEncryptedBlob(sessionId, blobId, keyAlias)
-                    result.success(decryptedBytes)
-                } catch (e: Exception) {
-                    result.error("CRYPTO_ERROR", e.message, null)
-                }
-            }
-            "isPdsInstalled" -> {
-                result.success(client.isPdsInstalled())
-            }
-            "installPdsApk" -> {
-                val apkUriString = call.argument<String>("apkUriString")
-                if (apkUriString == null) {
-                    result.error("INVALID_ARGUMENT", "apkUriString must not be null", null)
-                    return
-                }
-                result.success(client.installPdsApk(apkUriString))
-            }
-            "listClients" -> {
-                try {
-                    result.success(client.listClients())
-                } catch (e: Exception) {
-                    result.error("LIST_CLIENTS_ERROR", e.message, null)
-                }
-            }
-            "revokeClient" -> {
-                val clientId = call.argument<String>("clientId")
-                if (clientId == null) {
-                    result.error("INVALID_ARGUMENT", "clientId must not be null", null)
-                    return
-                }
-                try {
-                    result.success(client.revokeClient(clientId))
-                } catch (e: Exception) {
-                    result.error("REVOKE_CLIENT_ERROR", e.message, null)
-                }
-            }
-            "removeClient" -> {
-                val clientId = call.argument<String>("clientId")
-                if (clientId == null) {
-                    result.error("INVALID_ARGUMENT", "clientId must not be null", null)
-                    return
-                }
-                try {
-                    result.success(client.removeClient(clientId))
-                } catch (e: Exception) {
-                    result.error("REMOVE_CLIENT_ERROR", e.message, null)
-                }
-            }
-            "requestAuthorization" -> {
-                val currentActivity = activity
-                if (currentActivity == null) {
-                    result.error("NO_ACTIVITY", "Cannot launch authorization dialog without foreground activity", null)
-                    return
-                }
-                if (pendingAuthResult != null) {
-                    result.error("ALREADY_REQUESTING", "Another authorization request is already pending", null)
-                    return
-                }
-
-                val clientName = call.argument<String>("clientName") ?: "Client Application"
-                val publicKey = call.argument<ByteArray>("publicKey")
-                val permissionsList = call.argument<List<String>>("permissions")
-                val permissions = permissionsList?.toTypedArray() ?: arrayOf(
-                    "ReadEntities", "WriteEntities", "ReadBlobs", "WriteBlobs", "ReadHistory"
-                )
-
-                val intent = PdsAndroidClient.createAuthorizationIntent(
-                    clientName = clientName,
-                    publicKey = publicKey,
-                    permissions = permissions
-                )
-
-                pendingAuthResult = result
-                try {
-                    currentActivity.startActivityForResult(intent, REQUEST_CODE_AUTH)
-                } catch (e: Exception) {
-                    pendingAuthResult = null
-                    result.error("LAUNCH_ERROR", "Failed to launch authorization dialog: ${e.message}", null)
-                }
-            }
-            else -> {
-                result.notImplemented()
-            }
+        try {
+            val connected = client.connect()
+            callback(Result.success(connected))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
         }
     }
 
+    override fun disconnect(): Boolean {
+        pdsClient?.disconnect()
+        return true
+    }
+
+    override fun isConnected(): Boolean {
+        return pdsClient?.isConnected() ?: false
+    }
+
+    override fun isReady(): Boolean {
+        return pdsClient?.isReady() ?: false
+    }
+
+    override fun executeRawRequest(requestJson: String, callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val response = client.executeRawRequest(requestJson)
+            callback(Result.success(response))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun registerClient(clientName: String, publicKey: ByteArray, callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val clientId = client.register(clientName, publicKey)
+            callback(Result.success(clientId))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun getPendingChanges(sessionId: String, limit: Long?, callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val pendingJson = client.getPendingChanges(sessionId, limit?.toInt())
+            callback(Result.success(pendingJson))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun acknowledgeChanges(sessionId: String, changeId: String, callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val ackJson = client.acknowledgeChanges(sessionId, changeId)
+            callback(Result.success(ackJson))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun getClientCursor(sessionId: String, callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val cursorJson = client.getClientCursor(sessionId)
+            callback(Result.success(cursorJson))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun createRelation(
+        sessionId: String,
+        relationType: String,
+        sourceEntityId: String,
+        targetEntityId: String,
+        callback: (Result<String>) -> Unit
+    ) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val resJson = client.createRelation(sessionId, relationType, sourceEntityId, targetEntityId)
+            callback(Result.success(resJson))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun createMultimemberRelation(
+        sessionId: String,
+        relationType: String,
+        membersJson: String,
+        callback: (Result<String>) -> Unit
+    ) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val resJson = client.createMultimemberRelation(sessionId, relationType, membersJson)
+            callback(Result.success(resJson))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun putBlob(
+        sessionId: String,
+        data: ByteArray,
+        mediaType: String?,
+        callback: (Result<String>) -> Unit
+    ) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val resJson = client.putBlob(sessionId, data, mediaType)
+            callback(Result.success(resJson))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun getBlob(sessionId: String, blobId: String, callback: (Result<ByteArray>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val bytes = client.getBlob(sessionId, blobId)
+            callback(Result.success(bytes))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun putEncryptedBlob(
+        sessionId: String,
+        plaintext: ByteArray,
+        keyAlias: String,
+        mediaType: String?,
+        callback: (Result<String>) -> Unit
+    ) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val resJson = client.putEncryptedBlob(sessionId, plaintext, keyAlias, mediaType ?: "application/octet-stream")
+            callback(Result.success(resJson))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun getEncryptedBlob(
+        sessionId: String,
+        blobId: String,
+        keyAlias: String,
+        callback: (Result<ByteArray>) -> Unit
+    ) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val bytes = client.getEncryptedBlob(sessionId, blobId, keyAlias)
+            callback(Result.success(bytes))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun isPdsInstalled(): Boolean {
+        return pdsClient?.isPdsInstalled() ?: false
+    }
+
+    override fun installPdsApk(apkUriString: String): Boolean {
+        return pdsClient?.installPdsApk(apkUriString) ?: false
+    }
+
+    override fun listClients(): String {
+        return pdsClient?.listClients() ?: "[]"
+    }
+
+    override fun revokeClient(clientId: String): Boolean {
+        return pdsClient?.revokeClient(clientId) ?: false
+    }
+
+    override fun removeClient(clientId: String): Boolean {
+        return pdsClient?.removeClient(clientId) ?: false
+    }
+
+    override fun requestAuthorization(
+        clientName: String,
+        publicKey: ByteArray?,
+        permissions: List<String>?,
+        callback: (Result<PdsAuthResultDto>) -> Unit
+    ) {
+        val currentActivity = activity
+        if (currentActivity == null) {
+            callback(Result.failure(IllegalStateException("Cannot launch authorization dialog without foreground activity")))
+            return
+        }
+        if (pendingAuthCallback != null) {
+            callback(Result.failure(IllegalStateException("Another authorization request is already pending")))
+            return
+        }
+
+        val perms = permissions?.toTypedArray() ?: arrayOf(
+            "ReadEntities", "WriteEntities", "ReadBlobs", "WriteBlobs", "ReadHistory"
+        )
+
+        val intent = PdsAndroidClient.createAuthorizationIntent(
+            clientName = clientName,
+            publicKey = publicKey,
+            permissions = perms
+        )
+
+        pendingAuthCallback = callback
+        try {
+            currentActivity.startActivityForResult(intent, REQUEST_CODE_AUTH)
+        } catch (e: Exception) {
+            pendingAuthCallback = null
+            callback(Result.failure(e))
+        }
+    }
+
+    // ActivityAware & ActivityResultListener
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode == REQUEST_CODE_AUTH) {
-            val result = pendingAuthResult
-            pendingAuthResult = null
-            if (result == null) return true
+            val callback = pendingAuthCallback
+            pendingAuthCallback = null
+            if (callback == null) return true
 
             if (resultCode == Activity.RESULT_OK && data != null) {
                 val clientId = data.getStringExtra(PdsAndroidClient.RESULT_CLIENT_ID)
                 val grantedPermissions = data.getStringArrayExtra(PdsAndroidClient.RESULT_GRANTED_PERMISSIONS)?.toList() ?: emptyList<String>()
-                val resMap = HashMap<String, Any?>()
-                resMap["status"] = "authorized"
-                resMap["clientId"] = clientId
-                resMap["grantedPermissions"] = grantedPermissions
-                result.success(resMap)
+                callback(Result.success(PdsAuthResultDto(
+                    isAuthorized = true,
+                    clientId = clientId,
+                    grantedPermissions = grantedPermissions
+                )))
             } else {
-                val resMap = HashMap<String, Any?>()
-                resMap["status"] = "denied"
-                resMap["clientId"] = null
-                resMap["grantedPermissions"] = emptyList<String>()
-                result.success(resMap)
+                callback(Result.success(PdsAuthResultDto(
+                    isAuthorized = false,
+                    clientId = null,
+                    grantedPermissions = emptyList()
+                )))
             }
             return true
         }
@@ -371,6 +363,8 @@ class PdsFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
         activityBinding = null
     }
 
+    // StreamHandler for watchChanges
+
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
         val entityType = (arguments as? Map<*, *>)?.get("entityType") as? String ?: "*"
@@ -384,12 +378,5 @@ class PdsFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
             pdsClient?.unsubscribe(changeListener)
         } catch (_: Exception) {}
         eventSink = null
-    }
-
-    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        channel.setMethodCallHandler(null)
-        eventChannel.setStreamHandler(null)
-        pdsClient?.disconnect()
-        pdsClient = null
     }
 }
