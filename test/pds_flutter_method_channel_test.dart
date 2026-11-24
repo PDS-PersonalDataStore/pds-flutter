@@ -1,77 +1,161 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pds_flutter/pds_flutter_method_channel.dart';
+import 'package:pds_flutter/src/pds_api.g.dart';
+
+// ignore: non_constant_identifier_names
+class FakePdsHostApi implements PdsHostApi {
+  @override
+  // ignore: non_constant_identifier_names
+  BinaryMessenger? get pigeonVar_binaryMessenger => null;
+
+  @override
+  // ignore: non_constant_identifier_names
+  String get pigeonVar_messageChannelSuffix => '';
+
+  @override
+  Future<bool> connect() async => true;
+
+  @override
+  Future<bool> disconnect() async => true;
+
+  @override
+  Future<bool> isConnected() async => true;
+
+  @override
+  Future<bool> isReady() async => true;
+
+  @override
+  Future<String> executeRawRequest(String requestJson) async =>
+      '{"status":"Success"}';
+
+  @override
+  Future<String> registerClient(String clientName, Uint8List publicKey) async =>
+      '01J00000000000000000000000';
+
+  @override
+  Future<String> getPendingChanges(String sessionId, int? limit) async => '[]';
+
+  @override
+  Future<String> acknowledgeChanges(
+          String sessionId, String changeId) async =>
+      '{"status":"Success"}';
+
+  @override
+  Future<String> getClientCursor(String sessionId) async => '{"cursor":0}';
+
+  @override
+  Future<String> createRelation(
+    String sessionId,
+    String relationType,
+    String sourceEntityId,
+    String targetEntityId,
+  ) async =>
+      '{"status":"Success","relation_id":"rel_123"}';
+
+  @override
+  Future<String> createMultimemberRelation(
+    String sessionId,
+    String relationType,
+    String membersJson,
+  ) async =>
+      '{"status":"Success","relation_id":"rel_456"}';
+
+  @override
+  Future<String> putBlob(
+    String sessionId,
+    Uint8List data,
+    String? mediaType,
+  ) async =>
+      '{"status":"Success","blob_id":"b_123"}';
+
+  @override
+  Future<Uint8List> getBlob(String sessionId, String blobId) async =>
+      Uint8List.fromList([1, 2, 3]);
+
+  @override
+  Future<String> putEncryptedBlob(
+    String sessionId,
+    Uint8List plaintext,
+    String keyAlias,
+    String? mediaType,
+  ) async =>
+      '{"status":"Success","blob_id":"b_enc_123"}';
+
+  @override
+  Future<Uint8List> getEncryptedBlob(
+    String sessionId,
+    String blobId,
+    String keyAlias,
+  ) async =>
+      Uint8List.fromList([4, 5, 6]);
+
+  @override
+  Future<bool> isPdsInstalled() async => true;
+
+  @override
+  Future<bool> installPdsApk(String apkUriString) async => true;
+
+  @override
+  Future<String> listClients() async => '[]';
+
+  @override
+  Future<bool> revokeClient(String clientId) async => true;
+
+  @override
+  Future<bool> removeClient(String clientId) async => true;
+
+  @override
+  Future<PdsAuthResultDto> requestAuthorization(
+    String clientName,
+    Uint8List? publicKey,
+    List<String>? permissions,
+  ) async =>
+      PdsAuthResultDto(
+        isAuthorized: true,
+        clientId: '01J00000000000000000000000',
+        grantedPermissions: ['ReadEntities', 'WriteEntities'],
+      );
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  final platform = MethodChannelPdsFlutter();
-  const channel = MethodChannel('top.tau2c.pds/client');
+  late FakePdsHostApi fakeHostApi;
+  late MethodChannelPdsFlutter platform;
 
   setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-      switch (methodCall.method) {
-        case 'connect':
-          return true;
-        case 'disconnect':
-          return true;
-        case 'isConnected':
-          return true;
-        case 'isReady':
-          return true;
-        case 'executeRawRequest':
-          return '{"status":"Success"}';
-        case 'isPdsInstalled':
-          return true;
-        case 'installPdsApk':
-          return true;
-        case 'listClients':
-          return '[]';
-        case 'revokeClient':
-          return true;
-        case 'removeClient':
-          return true;
-        case 'requestAuthorization':
-          return {
-            'status': 'authorized',
-            'clientId': '01J00000000000000000000000',
-            'grantedPermissions': ['ReadEntities', 'WriteEntities'],
-          };
-        case 'createRelation':
-          return '{"status":"Success","relation_id":"rel_123"}';
-        case 'createMultimemberRelation':
-          return '{"status":"Success","relation_id":"rel_456"}';
-        case 'putBlob':
-          return '{"status":"Success","blob_id":"b_123"}';
-        case 'getBlob':
-          return Uint8List.fromList([1, 2, 3]);
-        case 'putEncryptedBlob':
-          return '{"status":"Success","blob_id":"b_enc_123"}';
-        case 'getEncryptedBlob':
-          return Uint8List.fromList([4, 5, 6]);
-        default:
-          return null;
-      }
-    });
-  });
-
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
+    fakeHostApi = FakePdsHostApi();
+    platform = MethodChannelPdsFlutter(hostApi: fakeHostApi);
   });
 
   test('connect', () async {
     expect(await platform.connect(), true);
   });
 
+  test('disconnect', () async {
+    expect(await platform.disconnect(), true);
+  });
+
   test('isConnected', () async {
     expect(await platform.isConnected(), true);
+  });
+
+  test('isReady', () async {
+    expect(await platform.isReady(), true);
   });
 
   test('executeRawRequest', () async {
     final response = await platform.executeRawRequest('{"action":"ping"}');
     expect(response, '{"status":"Success"}');
+  });
+
+  test('registerClient', () async {
+    final response = await platform.registerClient(
+      'Test App',
+      Uint8List(32),
+    );
+    expect(response, '01J00000000000000000000000');
   });
 
   test('isPdsInstalled', () async {
@@ -95,7 +179,8 @@ void main() {
   });
 
   test('requestAuthorization', () async {
-    final authResult = await platform.requestAuthorization(clientName: 'Test App');
+    final authResult =
+        await platform.requestAuthorization(clientName: 'Test App');
     expect(authResult.isAuthorized, true);
     expect(authResult.clientId, '01J00000000000000000000000');
     expect(authResult.grantedPermissions, ['ReadEntities', 'WriteEntities']);
