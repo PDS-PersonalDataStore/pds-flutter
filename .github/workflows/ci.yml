@@ -30,6 +30,9 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Verify Pigeon Code Generation
+        run: dart run tool/generate_pigeon.dart --check
+
       - name: Analyze Plugin Code
         run: flutter analyze
 
