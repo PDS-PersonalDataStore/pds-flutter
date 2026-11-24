@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+
+# Pre-commit hook: Auto-generate Pigeon bindings if pigeons/pds_api.dart is staged
+if git diff --cached --name-only | grep -q "^pigeons/pds_api.dart$"; then
+  echo "Pigeon definition modified. Auto-generating bindings..."
+  dart run tool/generate_pigeon.dart
+  git add lib/src/pds_api.g.dart android/src/main/kotlin/top/tau2c/pds/flutter/pds_flutter/PdsApi.g.kt
+  echo "Generated bindings updated and staged."
+fi
