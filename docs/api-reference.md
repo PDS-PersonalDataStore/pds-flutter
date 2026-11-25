@@ -29,6 +29,18 @@ Launches Android package installer for the specified APK file URI.
 ### `requestAuthorization({required String clientName, Uint8List? publicKey, List<String>? permissions}): Future<PdsAuthResult>`
 Launches the system authorization popup dialog. The user chooses whether to grant permissions. Returns `PdsAuthResult` with `isAuthorized`, `clientId`, and `grantedPermissions`.
 
+### `registerClient(String clientName, [Uint8List? publicKey]): Future<String>`
+Registers this client application with PDS Core. If `publicKey` is omitted, the persistent Ed25519 identity key managed by the SDK is automatically derived and used.
+
+### `getClientId(): Future<String?>`
+Returns the persistent client ID stored locally after authorization, or `null` if not authorized.
+
+### `isAuthorized(): Future<bool>`
+Checks whether this client application currently holds a valid stored authorization.
+
+### `clearClientIdentity(): Future<void>`
+Clears the stored client ID and reset persistent authorization state locally.
+
 ### `listClients(): Future<String>`
 Returns a JSON array of all registered client applications in PDS Core.
 
@@ -37,6 +49,16 @@ Revokes permissions granted to a specific client application.
 
 ### `removeClient(String clientId): Future<bool>`
 Completely deletes a client registration record from PDS Core.
+
+---
+
+## Logging & Tracing
+
+### `setLogLevel(String logLevel): Future<bool>`
+Sets the native PDS tracing log level (e.g. `trace`, `debug`, `info`, `warn`, `error`).
+
+### `getLogLevel(): Future<String>`
+Retrieves the current native PDS tracing log level.
 
 ---
 

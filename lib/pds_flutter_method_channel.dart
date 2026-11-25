@@ -35,8 +35,23 @@ class MethodChannelPdsFlutter extends PdsFlutterPlatform {
       hostApi.executeRawRequest(requestJson);
 
   @override
-  Future<String> registerClient(String clientName, Uint8List publicKey) =>
+  Future<String> registerClient(String clientName, [Uint8List? publicKey]) =>
       hostApi.registerClient(clientName, publicKey);
+
+  @override
+  Future<String?> getClientId() => hostApi.getClientId();
+
+  @override
+  Future<bool> isAuthorized() => hostApi.isAuthorized();
+
+  @override
+  Future<void> clearClientIdentity() => hostApi.clearClientIdentity();
+
+  @override
+  Future<bool> setLogLevel(String logLevel) => hostApi.setLogLevel(logLevel);
+
+  @override
+  Future<String> getLogLevel() => hostApi.getLogLevel();
 
   @override
   Future<String> getPendingChanges(String sessionId, {int? limit}) =>

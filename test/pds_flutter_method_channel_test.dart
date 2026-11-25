@@ -30,8 +30,23 @@ class FakePdsHostApi implements PdsHostApi {
       '{"status":"Success"}';
 
   @override
-  Future<String> registerClient(String clientName, Uint8List publicKey) async =>
+  Future<String> registerClient(String clientName, Uint8List? publicKey) async =>
       '01J00000000000000000000000';
+
+  @override
+  Future<String?> getClientId() async => '01J00000000000000000000000';
+
+  @override
+  Future<bool> isAuthorized() async => true;
+
+  @override
+  Future<void> clearClientIdentity() async {}
+
+  @override
+  Future<bool> setLogLevel(String logLevel) async => true;
+
+  @override
+  Future<String> getLogLevel() async => 'debug';
 
   @override
   Future<String> getPendingChanges(String sessionId, int? limit) async => '[]';
@@ -156,6 +171,26 @@ void main() {
       Uint8List(32),
     );
     expect(response, '01J00000000000000000000000');
+  });
+
+  test('getClientId', () async {
+    expect(await platform.getClientId(), '01J00000000000000000000000');
+  });
+
+  test('isAuthorized', () async {
+    expect(await platform.isAuthorized(), true);
+  });
+
+  test('clearClientIdentity', () async {
+    await platform.clearClientIdentity();
+  });
+
+  test('setLogLevel', () async {
+    expect(await platform.setLogLevel('debug'), true);
+  });
+
+  test('getLogLevel', () async {
+    expect(await platform.getLogLevel(), 'debug');
   });
 
   test('isPdsInstalled', () async {
