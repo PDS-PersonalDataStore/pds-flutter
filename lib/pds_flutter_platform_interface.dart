@@ -36,8 +36,28 @@ abstract class PdsFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('executeRawRequest() has not been implemented.');
   }
 
-  Future<String> registerClient(String clientName, Uint8List publicKey) {
+  Future<String> registerClient(String clientName, [Uint8List? publicKey]) {
     throw UnimplementedError('registerClient() has not been implemented.');
+  }
+
+  Future<String?> getClientId() {
+    throw UnimplementedError('getClientId() has not been implemented.');
+  }
+
+  Future<bool> isAuthorized() {
+    throw UnimplementedError('isAuthorized() has not been implemented.');
+  }
+
+  Future<void> clearClientIdentity() {
+    throw UnimplementedError('clearClientIdentity() has not been implemented.');
+  }
+
+  Future<bool> setLogLevel(String logLevel) {
+    throw UnimplementedError('setLogLevel() has not been implemented.');
+  }
+
+  Future<String> getLogLevel() {
+    throw UnimplementedError('getLogLevel() has not been implemented.');
   }
 
   Future<String> getPendingChanges(String sessionId, {int? limit}) {
