@@ -99,7 +99,7 @@ class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, 
         }
     }
 
-    override fun registerClient(clientName: String, publicKey: ByteArray, callback: (Result<String>) -> Unit) {
+    override fun registerClient(clientName: String, publicKey: ByteArray?, callback: (Result<String>) -> Unit) {
         val client = pdsClient ?: run {
             callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
             return
@@ -110,6 +110,18 @@ class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, 
         } catch (e: Exception) {
             callback(Result.failure(e))
         }
+    }
+
+    override fun getClientId(): String? {
+        return pdsClient?.getClientId()
+    }
+
+    override fun isAuthorized(): Boolean {
+        return pdsClient?.isAuthorized() ?: false
+    }
+
+    override fun clearClientIdentity() {
+        pdsClient?.clearClientIdentity()
     }
 
     override fun getPendingChanges(sessionId: String, limit: Long?, callback: (Result<String>) -> Unit) {
@@ -276,6 +288,32 @@ class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, 
         return pdsClient?.removeClient(clientId) ?: false
     }
 
+    override fun setLogLevel(logLevel: String, callback: (Result<Boolean>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val success = client.setLogLevel(logLevel)
+            callback(Result.success(success))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun getLogLevel(callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val level = client.getLogLevel()
+            callback(Result.success(level))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
     override fun requestAuthorization(
         clientName: String,
         publicKey: ByteArray?,
@@ -320,7 +358,7 @@ class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, 
             if (callback == null) return true
 
             if (resultCode == Activity.RESULT_OK && data != null) {
-                val clientId = data.getStringExtra(PdsAndroidClient.RESULT_CLIENT_ID)
+                val clientId = pdsClient?.handleAuthResult(data) ?: data.getStringExtra(PdsAndroidClient.RESULT_CLIENT_ID)
                 val grantedPermissions = data.getStringArrayExtra(PdsAndroidClient.RESULT_GRANTED_PERMISSIONS)?.toList() ?: emptyList<String>()
                 callback(Result.success(PdsAuthResultDto(
                     isAuthorized = true,
