@@ -27,8 +27,24 @@ class PdsClient {
       _platform.executeRawRequest(requestJson);
 
   /// Registers this client application with its public key.
-  Future<String> registerClient(String clientName, Uint8List publicKey) =>
+  /// If [publicKey] is omitted, the client identity key managed by the SDK is used.
+  Future<String> registerClient(String clientName, [Uint8List? publicKey]) =>
       _platform.registerClient(clientName, publicKey);
+
+  /// Gets the stored client ID if authorized.
+  Future<String?> getClientId() => _platform.getClientId();
+
+  /// Checks if the client identity is registered and authorized.
+  Future<bool> isAuthorized() => _platform.isAuthorized();
+
+  /// Clears stored client identity and authorization state.
+  Future<void> clearClientIdentity() => _platform.clearClientIdentity();
+
+  /// Sets the native PDS tracing log level.
+  Future<bool> setLogLevel(String logLevel) => _platform.setLogLevel(logLevel);
+
+  /// Gets the current native PDS tracing log level.
+  Future<String> getLogLevel() => _platform.getLogLevel();
 
   /// Stores a record of the given entity type in PDS.
   Future<String> put(String entityType, Map<String, dynamic> data) async {

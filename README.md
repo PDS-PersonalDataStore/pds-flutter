@@ -12,7 +12,9 @@ Flutter plugin for personal data store (PDS) Android IPC via Binder and AIDL (`I
 - **Durable Sessions**: Offline sync cursors (`getPendingChanges`, `acknowledgeChanges`).
 - **Entity Relations**: Binary and multimember relations (`createRelation`, `createMultimemberRelation`).
 - **Client Authorization Dialog**: Request interactive user authorization via PDS dialog (`requestAuthorization`).
+- **Client Identity Persistence**: Automatic Ed25519 identity key generation and local authorization persistence (`getClientId`, `isAuthorized`, `clearClientIdentity`).
 - **Client Management**: List and revoke authorized clients (`listClients`, `revokeClient`, `removeClient`).
+- **Native Tracing Controls**: Set and inspect native runtime log levels (`setLogLevel`, `getLogLevel`).
 - **PDS Lifecycle Helper**: Detect installation status and invoke package installer (`isPdsInstalled`, `installPdsApk`).
 
 ## Installation
@@ -95,14 +97,23 @@ Future<void> main() async {
 }
 ```
 
+## Documentation
+
+- [Architecture Guide](docs/architecture.md): Multi-layer IPC architecture, Pigeon typed host API, and Binder service integration.
+- [Error Handling Guide](docs/error-handling.md): Common exceptions, error codes, and recovery strategies.
+- [API Reference](docs/api-reference.md): Detailed reference of all methods and parameters.
+
 ## Architecture
 
 The plugin implements the following communication flow:
 
 1. **Dart API**: High-level async interface (`PdsClient`).
-2. **Platform Channel**: MethodChannel communication to Android platform layer.
-3. **Android Client (`PdsAndroidClient.kt`)**: Binds to `top.tau2c.pds.core.PdsService` intent.
-4. **AIDL Interface**: IPC calls via generated `IPdsService` Binder interface and `IPdsChangeListener`.
+2. **Pigeon Typed Host API**: Auto-generated type-safe IPC layer (`PdsHostApi`).
+3. **Android Plugin Layer (`PdsFlutterPlugin.kt`)**: Activity-aware foreground launcher and stream handler.
+4. **Android Client (`PdsAndroidClient.kt`)**: Binds to `top.tau2c.pds.core.PdsService` intent with `PdsCryptoManager` E2EE.
+5. **AIDL Interface**: IPC calls via generated `IPdsService` Binder interface and `IPdsChangeListener`.
+
+See [docs/architecture.md](docs/architecture.md) for full architectural diagrams and details.
 
 ## License
 
