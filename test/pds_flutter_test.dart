@@ -25,8 +25,23 @@ class MockPdsFlutterPlatform
       Future.value('{"status":"Success"}');
 
   @override
-  Future<String> registerClient(String clientName, Uint8List publicKey) =>
+  Future<String> registerClient(String clientName, [Uint8List? publicKey]) =>
       Future.value('01J00000000000000000000000');
+
+  @override
+  Future<String?> getClientId() => Future.value('01J00000000000000000000000');
+
+  @override
+  Future<bool> isAuthorized() => Future.value(true);
+
+  @override
+  Future<void> clearClientIdentity() => Future.value();
+
+  @override
+  Future<bool> setLogLevel(String logLevel) => Future.value(true);
+
+  @override
+  Future<String> getLogLevel() => Future.value('debug');
 
   @override
   Future<String> getPendingChanges(String sessionId, {int? limit}) =>
@@ -139,6 +154,15 @@ void main() {
     expect(await client.connect(), true);
     expect(await client.isConnected(), true);
     expect(await client.isReady(), true);
+    expect(await client.getClientId(), '01J00000000000000000000000');
+    expect(await client.isAuthorized(), true);
+    await client.clearClientIdentity();
+    expect(await client.setLogLevel('trace'), true);
+    expect(await client.getLogLevel(), 'debug');
+    expect(
+      await client.registerClient('Test App'),
+      '01J00000000000000000000000',
+    );
     expect(
       await client.createRelation(
         sessionId: 'session_1',
