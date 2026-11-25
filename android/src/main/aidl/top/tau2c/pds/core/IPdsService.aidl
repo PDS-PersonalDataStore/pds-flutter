@@ -54,4 +54,14 @@ interface IPdsService {
      * Removes a client application record completely.
      */
     boolean removeClient(String clientId);
+
+    /**
+     * Dynamically sets tracing log level filter (e.g. "info", "debug", "trace", "pds=debug").
+     */
+    boolean setLogLevel(String logLevel);
+
+    /**
+     * Gets current tracing log level filter.
+     */
+    String getLogLevel();
 }
