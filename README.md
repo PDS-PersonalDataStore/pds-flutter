@@ -12,7 +12,9 @@ Flutter plugin for personal data store (PDS) Android IPC via Binder and AIDL (`I
 - **Durable Sessions**: Offline sync cursors (`getPendingChanges`, `acknowledgeChanges`).
 - **Entity Relations**: Binary and multimember relations (`createRelation`, `createMultimemberRelation`).
 - **Client Authorization Dialog**: Request interactive user authorization via PDS dialog (`requestAuthorization`).
+- **Client Identity Persistence**: Automatic Ed25519 identity key generation and local authorization persistence (`getClientId`, `isAuthorized`, `clearClientIdentity`).
 - **Client Management**: List and revoke authorized clients (`listClients`, `revokeClient`, `removeClient`).
+- **Native Tracing Controls**: Set and inspect native runtime log levels (`setLogLevel`, `getLogLevel`).
 - **PDS Lifecycle Helper**: Detect installation status and invoke package installer (`isPdsInstalled`, `installPdsApk`).
 
 ## Installation
