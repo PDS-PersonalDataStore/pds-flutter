@@ -37,7 +37,13 @@ abstract class PdsHostApi {
   String executeRawRequest(String requestJson);
 
   @async
-  String registerClient(String clientName, Uint8List publicKey);
+  String registerClient(String clientName, Uint8List? publicKey);
+
+  String? getClientId();
+
+  bool isAuthorized();
+
+  void clearClientIdentity();
 
   @async
   String getPendingChanges(String sessionId, int? limit);
@@ -93,6 +99,12 @@ abstract class PdsHostApi {
   bool revokeClient(String clientId);
 
   bool removeClient(String clientId);
+
+  @async
+  bool setLogLevel(String logLevel);
+
+  @async
+  String getLogLevel();
 
   @async
   PdsAuthResultDto requestAuthorization(

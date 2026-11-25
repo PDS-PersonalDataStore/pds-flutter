@@ -266,7 +266,10 @@ interface PdsHostApi {
   fun isConnected(): Boolean
   fun isReady(): Boolean
   fun executeRawRequest(requestJson: String, callback: (Result<String>) -> Unit)
-  fun registerClient(clientName: String, publicKey: ByteArray, callback: (Result<String>) -> Unit)
+  fun registerClient(clientName: String, publicKey: ByteArray?, callback: (Result<String>) -> Unit)
+  fun getClientId(): String?
+  fun isAuthorized(): Boolean
+  fun clearClientIdentity()
   fun getPendingChanges(sessionId: String, limit: Long?, callback: (Result<String>) -> Unit)
   fun acknowledgeChanges(sessionId: String, changeId: String, callback: (Result<String>) -> Unit)
   fun getClientCursor(sessionId: String, callback: (Result<String>) -> Unit)
@@ -281,6 +284,8 @@ interface PdsHostApi {
   fun listClients(): String
   fun revokeClient(clientId: String): Boolean
   fun removeClient(clientId: String): Boolean
+  fun setLogLevel(logLevel: String, callback: (Result<Boolean>) -> Unit)
+  fun getLogLevel(callback: (Result<String>) -> Unit)
   fun requestAuthorization(clientName: String, publicKey: ByteArray?, permissions: List<String>?, callback: (Result<PdsAuthResultDto>) -> Unit)
 
   companion object {
@@ -381,7 +386,7 @@ interface PdsHostApi {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val clientNameArg = args[0] as String
-            val publicKeyArg = args[1] as ByteArray
+            val publicKeyArg = args[1] as ByteArray?
             api.registerClient(clientNameArg, publicKeyArg) { result: Result<String> ->
               val error = result.exceptionOrNull()
               if (error != null) {
@@ -391,6 +396,52 @@ interface PdsHostApi {
                 reply.reply(PdsApiPigeonUtils.wrapResult(data))
               }
             }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.getClientId$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              listOf(api.getClientId())
+            } catch (exception: Throwable) {
+              PdsApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.isAuthorized$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              listOf(api.isAuthorized())
+            } catch (exception: Throwable) {
+              PdsApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.clearClientIdentity$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              api.clearClientIdentity()
+              listOf(null)
+            } catch (exception: Throwable) {
+              PdsApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
           }
         } else {
           channel.setMessageHandler(null)
@@ -667,6 +718,44 @@ interface PdsHostApi {
               PdsApiPigeonUtils.wrapError(exception)
             }
             reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.setLogLevel$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val logLevelArg = args[0] as String
+            api.setLogLevel(logLevelArg) { result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PdsApiPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(PdsApiPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.getLogLevel$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.getLogLevel{ result: Result<String> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PdsApiPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(PdsApiPigeonUtils.wrapResult(data))
+              }
+            }
           }
         } else {
           channel.setMessageHandler(null)

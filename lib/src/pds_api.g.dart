@@ -287,7 +287,7 @@ class PdsHostApi {
     return pigeonVar_replyValue! as String;
   }
 
-  Future<String> registerClient(String clientName, Uint8List publicKey) async {
+  Future<String> registerClient(String clientName, Uint8List? publicKey) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.pds_flutter.PdsHostApi.registerClient$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -304,6 +304,62 @@ class PdsHostApi {
     )
     ;
     return pigeonVar_replyValue! as String;
+  }
+
+  Future<String?> getClientId() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.pds_flutter.PdsHostApi.getClientId$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+    return pigeonVar_replyValue as String?;
+  }
+
+  Future<bool> isAuthorized() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.pds_flutter.PdsHostApi.isAuthorized$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
+    return pigeonVar_replyValue! as bool;
+  }
+
+  Future<void> clearClientIdentity() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.pds_flutter.PdsHostApi.clearClientIdentity$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
   }
 
   Future<String> getPendingChanges(String sessionId, int? limit) async {
@@ -570,6 +626,44 @@ class PdsHostApi {
     )
     ;
     return pigeonVar_replyValue! as bool;
+  }
+
+  Future<bool> setLogLevel(String logLevel) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.pds_flutter.PdsHostApi.setLogLevel$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[logLevel]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
+    return pigeonVar_replyValue! as bool;
+  }
+
+  Future<String> getLogLevel() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.pds_flutter.PdsHostApi.getLogLevel$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
+    return pigeonVar_replyValue! as String;
   }
 
   Future<PdsAuthResultDto> requestAuthorization(String clientName, Uint8List? publicKey, List<String>? permissions) async {
