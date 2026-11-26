@@ -1,3 +1,9 @@
+## 0.9.0-dev.4
+
+* Update `client-sdk` dependency to `v0.9.0-dev.3`.
+* Add BouncyCastle dependency for RFC 8032 compliant Ed25519 signing.
+* Fix `Authentication failed: Invalid signature` handshake error.
+
 ## 0.9.0-dev.3
 
 * Update client-sdk dependency to `v0.9.0-dev.2`.
