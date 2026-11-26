@@ -196,6 +196,13 @@ void main() {
     expect(await client.put('receipts', {'store': 'Lidl'}), '{"status":"EntityCreated","payload":"ent_123"}');
     expect(await client.putRaw('receipts', '[["store",{"type":"Text","value":"Lidl"}]]'), '{"status":"EntityCreated","payload":"ent_123"}');
     expect(await client.get('receipts', 'ent_123'), '{"status":"Entity","payload":{"id":"ent_123"}}');
+    expect(await client.getRaw('receipts', 'ent_123'), '{"status":"Entity","payload":{"id":"ent_123"}}');
+    expect(
+      PdsClient.flattenEntityJson(
+        '{"status":"Entity","payload":{"id":"ent_1","properties":{"name":{"type":"Text","value":"Jan"},"age":{"type":"Int","value":30}}}}',
+      ),
+      '{"status":"Entity","payload":{"id":"ent_1","properties":{"name":"Jan","age":30}}}',
+    );
     expect(await client.updateEntity('ent_123', setProperties: {'store': 'Biedronka'}), '{"status":"EntityUpdated","payload":"ent_123"}');
     expect(await client.updateEntityRaw('ent_123', setPropertiesJson: '[["store",{"type":"Text","value":"Biedronka"}]]'), '{"status":"EntityUpdated","payload":"ent_123"}');
     expect(await client.delete('receipts', 'ent_123'), true);

@@ -160,7 +160,13 @@ class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, 
             return
         }
         try {
-            val res = client.put(entityType, dataJson, sessionId)
+            val trimmed = dataJson.trim()
+            val res = if (trimmed.startsWith("[")) {
+                val array = org.json.JSONArray(trimmed)
+                client.createEntity(entityType, array, sessionId)
+            } else {
+                client.put(entityType, trimmed, sessionId)
+            }
             callback(Result.success(res))
         } catch (e: Exception) {
             callback(Result.failure(e))
@@ -192,7 +198,44 @@ class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, 
             return
         }
         try {
-            val setProps = if (setPropertiesJson != null) org.json.JSONArray(setPropertiesJson) else null
+            val setProps = if (setPropertiesJson != null) {
+                val trimmed = setPropertiesJson.trim()
+                if (trimmed.startsWith("[")) {
+                    org.json.JSONArray(trimmed)
+                } else {
+                    // Convert flat JSONObject to JSONArray of [key, PropertyValue]
+                    val obj = org.json.JSONObject(trimmed)
+                    val arr = org.json.JSONArray()
+                    for (key in obj.keys()) {
+                        val v = obj.get(key)
+                        val pair = org.json.JSONArray()
+                        pair.put(key)
+                        val pv = org.json.JSONObject()
+                        when (v) {
+                            is Boolean -> {
+                                pv.put("type", "Bool")
+                                pv.put("value", v)
+                            }
+                            is Int, is Long -> {
+                                pv.put("type", "Int")
+                                pv.put("value", v)
+                            }
+                            is Double -> {
+                                pv.put("type", "Float")
+                                pv.put("value", v)
+                            }
+                            else -> {
+                                pv.put("type", "Text")
+                                pv.put("value", v.toString())
+                            }
+                        }
+                        pair.put(pv)
+                        arr.put(pair)
+                    }
+                    arr
+                }
+            } else null
+
             val removeProps = if (removePropertiesJson != null) org.json.JSONArray(removePropertiesJson) else null
             val res = client.updateEntity(entityId, setProps, removeProps, sessionId)
             callback(Result.success(res))
