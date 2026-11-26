@@ -17,7 +17,7 @@ buildscript {
     }
 }
 
-val pdsClientVersion = "v0.9.0-dev.1"
+val pdsClientVersion = "v0.9.0-dev.2"
 val libsDir = layout.projectDirectory.dir("libs").asFile
 libsDir.mkdirs()
 
