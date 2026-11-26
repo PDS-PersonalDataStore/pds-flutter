@@ -52,6 +52,39 @@ abstract class PdsFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('clearClientIdentity() has not been implemented.');
   }
 
+  Future<String> authenticate([String apiVersion = '1.4.0']) {
+    throw UnimplementedError('authenticate() has not been implemented.');
+  }
+
+  Future<String?> getSessionId() {
+    throw UnimplementedError('getSessionId() has not been implemented.');
+  }
+
+  Future<bool> closeSession([String? sessionId]) {
+    throw UnimplementedError('closeSession() has not been implemented.');
+  }
+
+  Future<String> putEntity(String entityType, String dataJson, [String? sessionId]) {
+    throw UnimplementedError('putEntity() has not been implemented.');
+  }
+
+  Future<String> getEntity(String entityId, [String? sessionId]) {
+    throw UnimplementedError('getEntity() has not been implemented.');
+  }
+
+  Future<String> updateEntity(
+    String entityId, {
+    String? setPropertiesJson,
+    String? removePropertiesJson,
+    String? sessionId,
+  }) {
+    throw UnimplementedError('updateEntity() has not been implemented.');
+  }
+
+  Future<String> deleteEntity(String entityId, [String? sessionId]) {
+    throw UnimplementedError('deleteEntity() has not been implemented.');
+  }
+
   Future<bool> setLogLevel(String logLevel) {
     throw UnimplementedError('setLogLevel() has not been implemented.');
   }

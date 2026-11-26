@@ -48,6 +48,43 @@ class MethodChannelPdsFlutter extends PdsFlutterPlatform {
   Future<void> clearClientIdentity() => hostApi.clearClientIdentity();
 
   @override
+  Future<String> authenticate([String apiVersion = '1.4.0']) =>
+      hostApi.authenticate(apiVersion);
+
+  @override
+  Future<String?> getSessionId() async => hostApi.getSessionId();
+
+  @override
+  Future<bool> closeSession([String? sessionId]) =>
+      hostApi.closeSession(sessionId);
+
+  @override
+  Future<String> putEntity(String entityType, String dataJson, [String? sessionId]) =>
+      hostApi.putEntity(entityType, dataJson, sessionId);
+
+  @override
+  Future<String> getEntity(String entityId, [String? sessionId]) =>
+      hostApi.getEntity(entityId, sessionId);
+
+  @override
+  Future<String> updateEntity(
+    String entityId, {
+    String? setPropertiesJson,
+    String? removePropertiesJson,
+    String? sessionId,
+  }) =>
+      hostApi.updateEntity(
+        entityId,
+        setPropertiesJson,
+        removePropertiesJson,
+        sessionId,
+      );
+
+  @override
+  Future<String> deleteEntity(String entityId, [String? sessionId]) =>
+      hostApi.deleteEntity(entityId, sessionId);
+
+  @override
   Future<bool> setLogLevel(String logLevel) => hostApi.setLogLevel(logLevel);
 
   @override
