@@ -58,9 +58,25 @@ class PdsClient {
       _platform.closeSession(sessionId);
 
   /// Stores a record of the given entity type in PDS.
-  /// Formats properties into PDS format and creates entity via client-sdk.
-  Future<String> put(String entityType, Map<String, dynamic> data, [String? sessionId]) =>
-      _platform.putEntity(entityType, jsonEncode(data), sessionId);
+  /// Automatically encodes [data] properties into the PDS Core `PropertyValue` format:
+  /// `[["key", {"type": "Text", "value": "..."}]]`.
+  Future<String> put(
+    String entityType,
+    Map<String, dynamic> data, [
+    String? sessionId,
+  ]) {
+    final properties = encodeProperties(data);
+    return _platform.putEntity(entityType, jsonEncode(properties), sessionId);
+  }
+
+  /// Stores a record of the given entity type using raw JSON properties.
+  /// Use this when [propertiesJson] is already formatted as `[["key", {"type": "...", "value": ...}]]`.
+  Future<String> putRaw(
+    String entityType,
+    String propertiesJson, [
+    String? sessionId,
+  ]) =>
+      _platform.putEntity(entityType, propertiesJson, sessionId);
 
   /// Retrieves an entity by its ULID identifier.
   Future<String?> get(String entityType, String id, [String? sessionId]) async {
@@ -69,6 +85,7 @@ class PdsClient {
   }
 
   /// Updates properties of an existing entity.
+  /// Automatically encodes [setProperties] into the PDS Core `PropertyValue` format.
   Future<String> updateEntity(
     String entityId, {
     Map<String, dynamic>? setProperties,
@@ -78,11 +95,60 @@ class PdsClient {
       _platform.updateEntity(
         entityId,
         setPropertiesJson:
-            setProperties != null ? jsonEncode(setProperties) : null,
+            setProperties != null ? jsonEncode(encodeProperties(setProperties)) : null,
         removePropertiesJson:
             removeProperties != null ? jsonEncode(removeProperties) : null,
         sessionId: sessionId,
       );
+
+  /// Updates properties of an existing entity using raw JSON strings.
+  Future<String> updateEntityRaw(
+    String entityId, {
+    String? setPropertiesJson,
+    String? removePropertiesJson,
+    String? sessionId,
+  }) =>
+      _platform.updateEntity(
+        entityId,
+        setPropertiesJson: setPropertiesJson,
+        removePropertiesJson: removePropertiesJson,
+        sessionId: sessionId,
+      );
+
+  /// Encodes a Dart map into the PDS Core `PropertyValue` format:
+  /// `[["key", {"type": "...", "value": ...}]]`.
+  static List<List<dynamic>> encodeProperties(Map<String, dynamic> data) {
+    return data.entries.map((entry) {
+      return [entry.key, toPropertyValue(entry.value)];
+    }).toList();
+  }
+
+  /// Encodes a single value into a PDS Core `PropertyValue` map.
+  static Map<String, dynamic> toPropertyValue(dynamic value) {
+    if (value == null) {
+      return const {'type': 'Null'};
+    } else if (value is bool) {
+      return {'type': 'Bool', 'value': value};
+    } else if (value is int) {
+      return {'type': 'Int', 'value': value};
+    } else if (value is double) {
+      return {'type': 'Float', 'value': value};
+    } else if (value is String) {
+      return {'type': 'Text', 'value': value};
+    } else if (value is DateTime) {
+      return {'type': 'DateTime', 'value': value.toUtc().toIso8601String()};
+    } else if (value is Uint8List) {
+      return {'type': 'BlobRef', 'value': base64Encode(value)};
+    } else if (value is List) {
+      return {'type': 'List', 'value': value.map(toPropertyValue).toList()};
+    } else if (value is Map) {
+      return {
+        'type': 'Map',
+        'value': value.map((k, v) => MapEntry(k.toString(), toPropertyValue(v))),
+      };
+    }
+    return {'type': 'Text', 'value': value.toString()};
+  }
 
   /// Deletes an entity by its ULID identifier.
   Future<bool> delete(String entityType, String id, [String? sessionId]) async {
