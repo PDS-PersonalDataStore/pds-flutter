@@ -270,6 +270,13 @@ interface PdsHostApi {
   fun getClientId(): String?
   fun isAuthorized(): Boolean
   fun clearClientIdentity()
+  fun authenticate(apiVersion: String, callback: (Result<String>) -> Unit)
+  fun getSessionId(): String?
+  fun closeSession(sessionId: String?, callback: (Result<Boolean>) -> Unit)
+  fun putEntity(entityType: String, dataJson: String, sessionId: String?, callback: (Result<String>) -> Unit)
+  fun getEntity(entityId: String, sessionId: String?, callback: (Result<String>) -> Unit)
+  fun updateEntity(entityId: String, setPropertiesJson: String?, removePropertiesJson: String?, sessionId: String?, callback: (Result<String>) -> Unit)
+  fun deleteEntity(entityId: String, sessionId: String?, callback: (Result<String>) -> Unit)
   fun getPendingChanges(sessionId: String, limit: Long?, callback: (Result<String>) -> Unit)
   fun acknowledgeChanges(sessionId: String, changeId: String, callback: (Result<String>) -> Unit)
   fun getClientCursor(sessionId: String, callback: (Result<String>) -> Unit)
@@ -442,6 +449,148 @@ interface PdsHostApi {
               PdsApiPigeonUtils.wrapError(exception)
             }
             reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.authenticate$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val apiVersionArg = args[0] as String
+            api.authenticate(apiVersionArg) { result: Result<String> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PdsApiPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(PdsApiPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.getSessionId$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              listOf(api.getSessionId())
+            } catch (exception: Throwable) {
+              PdsApiPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.closeSession$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val sessionIdArg = args[0] as String?
+            api.closeSession(sessionIdArg) { result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PdsApiPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(PdsApiPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.putEntity$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val entityTypeArg = args[0] as String
+            val dataJsonArg = args[1] as String
+            val sessionIdArg = args[2] as String?
+            api.putEntity(entityTypeArg, dataJsonArg, sessionIdArg) { result: Result<String> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PdsApiPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(PdsApiPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.getEntity$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val entityIdArg = args[0] as String
+            val sessionIdArg = args[1] as String?
+            api.getEntity(entityIdArg, sessionIdArg) { result: Result<String> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PdsApiPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(PdsApiPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.updateEntity$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val entityIdArg = args[0] as String
+            val setPropertiesJsonArg = args[1] as String?
+            val removePropertiesJsonArg = args[2] as String?
+            val sessionIdArg = args[3] as String?
+            api.updateEntity(entityIdArg, setPropertiesJsonArg, removePropertiesJsonArg, sessionIdArg) { result: Result<String> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PdsApiPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(PdsApiPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.pds_flutter.PdsHostApi.deleteEntity$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val entityIdArg = args[0] as String
+            val sessionIdArg = args[1] as String?
+            api.deleteEntity(entityIdArg, sessionIdArg) { result: Result<String> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PdsApiPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(PdsApiPigeonUtils.wrapResult(data))
+              }
+            }
           }
         } else {
           channel.setMessageHandler(null)
