@@ -5,7 +5,7 @@ Flutter plugin for personal data store (PDS) Android IPC via Binder and AIDL (`I
 ## Features
 
 - **IPC Service Binding**: Binds to background `top.tau2c.pds.core` system service.
-- **Entity Storage**: CRUD operations (`put`, `get`, `query`, `delete`) using JSON protocols.
+- **Entity Storage**: CRUD operations (`put`, `get`, `updateEntity`, `delete`) using JSON protocols.
 - **Content-Addressed Storage (CAS)**: Binary blob storage and retrieval (`putBlob`, `getBlob`).
 - **Encrypted Blobs (E2EE)**: Zero-knowledge client-side AES-256-GCM encryption with AndroidKeyStore (`putEncryptedBlob`, `getEncryptedBlob`).
 - **Reactive Changes**: Stream real-time database mutations via Binder callbacks (`watchChanges`).
@@ -88,9 +88,9 @@ Future<void> main() async {
     print('Received change event: $eventJson');
   });
 
-  // 6. Query records
-  final queryResult = await client.query('receipts');
-  print('Receipts query: $queryResult');
+  // 6. Update entity or fetch entity
+  final entityData = await client.get('receipts', '01JG...');
+  print('Receipt record: $entityData');
 
   // 7. Disconnect
   await client.disconnect();
@@ -100,6 +100,7 @@ Future<void> main() async {
 ## Documentation
 
 - [Architecture Guide](docs/architecture.md): Multi-layer IPC architecture, Pigeon typed host API, and Binder service integration.
+- [IPC Protocol Specification](docs/ipc-protocol.md): Low-level JSON envelope specification for PDS Core requests and responses.
 - [Error Handling Guide](docs/error-handling.md): Common exceptions, error codes, and recovery strategies.
 - [API Reference](docs/api-reference.md): Detailed reference of all methods and parameters.
 
