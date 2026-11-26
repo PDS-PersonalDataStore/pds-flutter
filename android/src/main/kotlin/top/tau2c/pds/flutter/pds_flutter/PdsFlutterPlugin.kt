@@ -124,6 +124,96 @@ class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, 
         pdsClient?.clearClientIdentity()
     }
 
+    override fun authenticate(apiVersion: String, callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val sessionId = client.authenticate(apiVersion)
+            callback(Result.success(sessionId))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun getSessionId(): String? {
+        return pdsClient?.getSessionId()
+    }
+
+    override fun closeSession(sessionId: String?, callback: (Result<Boolean>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val closed = client.closeSession(sessionId)
+            callback(Result.success(closed))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun putEntity(entityType: String, dataJson: String, sessionId: String?, callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val res = client.put(entityType, dataJson, sessionId)
+            callback(Result.success(res))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun getEntity(entityId: String, sessionId: String?, callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val res = client.getEntity(entityId, sessionId)
+            callback(Result.success(res))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun updateEntity(
+        entityId: String,
+        setPropertiesJson: String?,
+        removePropertiesJson: String?,
+        sessionId: String?,
+        callback: (Result<String>) -> Unit
+    ) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val setProps = if (setPropertiesJson != null) org.json.JSONArray(setPropertiesJson) else null
+            val removeProps = if (removePropertiesJson != null) org.json.JSONArray(removePropertiesJson) else null
+            val res = client.updateEntity(entityId, setProps, removeProps, sessionId)
+            callback(Result.success(res))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
+    override fun deleteEntity(entityId: String, sessionId: String?, callback: (Result<String>) -> Unit) {
+        val client = pdsClient ?: run {
+            callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
+            return
+        }
+        try {
+            val res = client.deleteEntity(entityId, sessionId)
+            callback(Result.success(res))
+        } catch (e: Exception) {
+            callback(Result.failure(e))
+        }
+    }
+
     override fun getPendingChanges(sessionId: String, limit: Long?, callback: (Result<String>) -> Unit) {
         val client = pdsClient ?: run {
             callback(Result.failure(IllegalStateException("PDS Client is not initialized")))
@@ -269,11 +359,26 @@ class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, 
     }
 
     override fun isPdsInstalled(): Boolean {
-        return pdsClient?.isPdsInstalled() ?: false
+        return try {
+            context.packageManager.getPackageInfo(PdsAndroidClient.PDS_PACKAGE_NAME, 0)
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     override fun installPdsApk(apkUriString: String): Boolean {
-        return pdsClient?.installPdsApk(apkUriString) ?: false
+        return try {
+            val uri = android.net.Uri.parse(apkUriString)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+            context.startActivity(intent)
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     override fun listClients(): String {
