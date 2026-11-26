@@ -1,3 +1,10 @@
+## 0.9.0-dev.5
+
+* Add automatic typed `PropertyValue` serialization for Dart maps in `PdsClient.put` and `PdsClient.updateEntity`.
+* Add `PdsClient.putRaw` and `PdsClient.updateEntityRaw` for pre-formatted raw JSON properties.
+* Add helper methods `PdsClient.encodeProperties` and `PdsClient.toPropertyValue`.
+* Remove obsolete `query` method and document IPC specification in `docs/ipc-protocol.md`.
+
 ## 0.9.0-dev.4
 
 * Update `client-sdk` dependency to `v0.9.0-dev.3`.
