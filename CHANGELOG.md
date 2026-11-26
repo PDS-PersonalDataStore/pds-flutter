@@ -1,3 +1,7 @@
+## 0.9.0-dev.2
+
+* Fix AGP library bundling by extracting `classes.jar` from `client-sdk-release.aar` into `client-sdk.jar`.
+
 ## 0.9.0-dev.1
 
 * Consume official `client-sdk-release.aar` v0.9.0-dev.1 from `PDS-PersonalDataStore/pds-android`.
