@@ -41,6 +41,15 @@ Checks whether this client application currently holds a valid stored authorizat
 ### `clearClientIdentity(): Future<void>`
 Clears the stored client ID and reset persistent authorization state locally.
 
+### `authenticate([String apiVersion = '1.4.0']): Future<String>`
+Performs cryptographic challenge-response authentication (`Hello` $\to$ `Challenge` $\to$ `Authenticate`) using the client's identity key and returns a newly established `sessionId`.
+
+### `getSessionId(): Future<String?>`
+Returns the active authenticated session ID, or `null` if no active session exists.
+
+### `closeSession([String? sessionId]): Future<bool>`
+Terminates the active or specified session via `CloseSession`.
+
 ### `listClients(): Future<String>`
 Returns a JSON array of all registered client applications in PDS Core.
 
