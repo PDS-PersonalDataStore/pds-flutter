@@ -58,19 +58,17 @@ class PdsClient {
       _platform.closeSession(sessionId);
 
   /// Stores a record of the given entity type in PDS.
-  /// Automatically encodes [data] properties into the PDS Core `PropertyValue` format:
-  /// `[["key", {"type": "Text", "value": "..."}]]`.
+  /// Passes flat [data] map directly to PDS Core, which converts fields into typed `PropertyValue` pairs.
   Future<String> put(
     String entityType,
     Map<String, dynamic> data, [
     String? sessionId,
-  ]) {
-    final properties = encodeProperties(data);
-    return _platform.putEntity(entityType, jsonEncode(properties), sessionId);
-  }
+  ]) =>
+      _platform.putEntity(entityType, jsonEncode(data), sessionId);
 
   /// Stores a record of the given entity type using raw JSON properties.
-  /// Use this when [propertiesJson] is already formatted as `[["key", {"type": "...", "value": ...}]]`.
+  /// Accepts either a JSON array `[["key", {"type": "...", "value": ...}]]`
+  /// or a flat JSON object `{"key": "value"}`.
   Future<String> putRaw(
     String entityType,
     String propertiesJson, [
@@ -78,14 +76,20 @@ class PdsClient {
   ]) =>
       _platform.putEntity(entityType, propertiesJson, sessionId);
 
-  /// Retrieves an entity by its ULID identifier.
+  /// Retrieves an entity by its ULID identifier and flattens typed `PropertyValue` objects into standard Dart values.
   Future<String?> get(String entityType, String id, [String? sessionId]) async {
+    final raw = await getRaw(entityType, id, sessionId);
+    if (raw == null) return null;
+    return flattenEntityJson(raw);
+  }
+
+  /// Retrieves the raw unmodified JSON response of an entity from PDS Core.
+  Future<String?> getRaw(String entityType, String id, [String? sessionId]) async {
     final res = await _platform.getEntity(id, sessionId);
     return res.isEmpty ? null : res;
   }
 
-  /// Updates properties of an existing entity.
-  /// Automatically encodes [setProperties] into the PDS Core `PropertyValue` format.
+  /// Updates properties of an existing entity using standard Dart map values.
   Future<String> updateEntity(
     String entityId, {
     Map<String, dynamic>? setProperties,
@@ -95,7 +99,7 @@ class PdsClient {
       _platform.updateEntity(
         entityId,
         setPropertiesJson:
-            setProperties != null ? jsonEncode(encodeProperties(setProperties)) : null,
+            setProperties != null ? jsonEncode(setProperties) : null,
         removePropertiesJson:
             removeProperties != null ? jsonEncode(removeProperties) : null,
         sessionId: sessionId,
@@ -114,6 +118,56 @@ class PdsClient {
         removePropertiesJson: removePropertiesJson,
         sessionId: sessionId,
       );
+
+  /// Flattens a PDS Core entity JSON string containing `{"type": "...", "value": ...}` properties
+  /// into a standard JSON string with primitive Dart values.
+  static String flattenEntityJson(String entityJson) {
+    try {
+      final decoded = jsonDecode(entityJson);
+      if (decoded is Map<String, dynamic>) {
+        final payload = decoded['payload'] ?? decoded;
+        if (payload is Map<String, dynamic> && payload.containsKey('properties')) {
+          final props = payload['properties'];
+          if (props is Map<String, dynamic>) {
+            final flatProps = <String, dynamic>{};
+            props.forEach((k, v) {
+              flatProps[k] = fromPropertyValue(v);
+            });
+            payload['properties'] = flatProps;
+          } else if (props is List) {
+            final flatProps = <String, dynamic>{};
+            for (final pair in props) {
+              if (pair is List && pair.length >= 2) {
+                flatProps[pair[0].toString()] = fromPropertyValue(pair[1]);
+              }
+            }
+            payload['properties'] = flatProps;
+          }
+        }
+        return jsonEncode(decoded);
+      }
+    } catch (_) {}
+    return entityJson;
+  }
+
+  /// Extracts the unwrapped value from a PDS Core `PropertyValue` map.
+  static dynamic fromPropertyValue(dynamic propValue) {
+    if (propValue is Map<String, dynamic>) {
+      if (propValue.containsKey('type')) {
+        final type = propValue['type'] as String?;
+        if (type == 'Null') return null;
+        if (propValue.containsKey('value')) {
+          final val = propValue['value'];
+          if (val is List) return val.map(fromPropertyValue).toList();
+          if (val is Map<String, dynamic>) {
+            return val.map((k, v) => MapEntry(k, fromPropertyValue(v)));
+          }
+          return val;
+        }
+      }
+    }
+    return propValue;
+  }
 
   /// Encodes a Dart map into the PDS Core `PropertyValue` format:
   /// `[["key", {"type": "...", "value": ...}]]`.

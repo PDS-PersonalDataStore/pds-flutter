@@ -74,13 +74,16 @@ Retrieves the current native PDS tracing log level.
 ## Entity Operations
 
 ### `put(String entityType, Map<String, dynamic> data, [String? sessionId]): Future<String>`
-Inserts or updates an entity record. Automatically encodes Dart map values into the PDS Core `PropertyValue` format: `[["key", {"type": "...", "value": ...}]]`.
+Inserts or updates an entity record with a flat key-value map.
 
 ### `putRaw(String entityType, String propertiesJson, [String? sessionId]): Future<String>`
-Inserts or updates an entity record using pre-formatted raw JSON properties.
+Inserts or updates an entity record using raw JSON object or raw JSON property array.
 
 ### `get(String entityType, String id, [String? sessionId]): Future<String?>`
-Retrieves a record by its entity type and ID. Returns `null` if not found.
+Retrieves a record by its entity type and ID with flattened properties. Returns `null` if not found.
+
+### `getRaw(String entityType, String id, [String? sessionId]): Future<String?>`
+Retrieves a record by its entity type and ID with unmodified PDS Core JSON. Returns `null` if not found.
 
 ### `updateEntity(String entityId, {Map<String, dynamic>? setProperties, List<String>? removeProperties, String? sessionId}): Future<String>`
 Updates specific properties of an existing entity record and/or removes specified properties. Automatically encodes `setProperties` into the PDS Core `PropertyValue` format.
