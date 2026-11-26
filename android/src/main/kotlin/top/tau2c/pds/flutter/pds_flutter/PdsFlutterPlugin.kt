@@ -439,11 +439,27 @@ class PdsFlutterPlugin : FlutterPlugin, PdsHostApi, EventChannel.StreamHandler, 
             "ReadEntities", "WriteEntities", "ReadBlobs", "WriteBlobs", "ReadHistory"
         )
 
-        val intent = PdsAndroidClient.createAuthorizationIntent(
-            clientName = clientName,
-            publicKey = publicKey,
-            permissions = perms
-        )
+        val intent = if (publicKey != null) {
+            PdsAndroidClient.createAuthorizationIntent(
+                clientName = clientName,
+                publicKey = publicKey,
+                permissions = perms
+            )
+        } else {
+            val client = pdsClient
+            if (client != null) {
+                client.createAuthorizationIntent(
+                    clientName = clientName,
+                    permissions = perms
+                )
+            } else {
+                PdsAndroidClient.createAuthorizationIntent(
+                    context = context,
+                    clientName = clientName,
+                    permissions = perms
+                )
+            }
+        }
 
         pendingAuthCallback = callback
         try {
