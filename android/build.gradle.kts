@@ -1,3 +1,5 @@
+import java.net.URI
+
 group = "top.tau2c.pds.flutter.pds_flutter"
 version = "1.0-SNAPSHOT"
 
@@ -11,6 +13,21 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:8.11.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
+val pdsClientVersion = "v0.9.0-dev.1"
+val libsDir = layout.projectDirectory.dir("libs").asFile
+libsDir.mkdirs()
+
+val releaseUrl = "https://github.com/PDS-PersonalDataStore/pds-android/releases/download/$pdsClientVersion/client-sdk-release.aar"
+val aarFile = libsDir.resolve("client-sdk-release.aar")
+
+if (!aarFile.exists()) {
+    URI(releaseUrl).toURL().openStream().use { input ->
+        aarFile.outputStream().use { output ->
+            input.copyTo(output)
+        }
     }
 }
 
@@ -75,6 +92,9 @@ android {
 }
 
 dependencies {
+    implementation(files(aarFile))
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.mockito:mockito-core:5.0.0")
 }
