@@ -79,8 +79,8 @@ Inserts or updates an entity record. Returns the generated record ID or JSON res
 ### `get(String entityType, String id): Future<String?>`
 Retrieves a record by its entity type and ID. Returns `null` if not found.
 
-### `query(String entityType, [Map<String, dynamic>? filter]): Future<String>`
-Queries records matching an optional filter map. Returns a JSON string containing matched records.
+### `updateEntity(String entityId, {Map<String, dynamic>? setProperties, List<String>? removeProperties, String? sessionId}): Future<String>`
+Updates specific properties of an existing entity record and/or removes specified properties. Returns the updated entity ID or JSON response.
 
 ### `delete(String entityType, String id): Future<bool>`
 Deletes a record by its entity type and ID. Returns `true` if deleted successfully.

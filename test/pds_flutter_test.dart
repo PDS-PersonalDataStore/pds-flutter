@@ -195,6 +195,7 @@ void main() {
     expect(await client.getSessionId(), 'sess_123');
     expect(await client.put('receipts', {'store': 'Lidl'}), '{"status":"EntityCreated","payload":"ent_123"}');
     expect(await client.get('receipts', 'ent_123'), '{"status":"Entity","payload":{"id":"ent_123"}}');
+    expect(await client.updateEntity('ent_123', setProperties: {'store': 'Biedronka'}), '{"status":"EntityUpdated","payload":"ent_123"}');
     expect(await client.delete('receipts', 'ent_123'), true);
     expect(await client.closeSession(), true);
     expect(

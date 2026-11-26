@@ -68,16 +68,21 @@ class PdsClient {
     return res.isEmpty ? null : res;
   }
 
-  /// Queries records of the given entity type with an optional filter.
-  Future<String> query(String entityType, [Map<String, dynamic>? filter, String? sessionId]) async {
-    // In PDS IPC, querying is currently done via GetPendingChanges or custom query filters
-    final req = jsonEncode({
-      'action': 'query',
-      'entity_type': entityType,
-      'filter': ?filter,
-    });
-    return executeRawRequest(req);
-  }
+  /// Updates properties of an existing entity.
+  Future<String> updateEntity(
+    String entityId, {
+    Map<String, dynamic>? setProperties,
+    List<String>? removeProperties,
+    String? sessionId,
+  }) =>
+      _platform.updateEntity(
+        entityId,
+        setPropertiesJson:
+            setProperties != null ? jsonEncode(setProperties) : null,
+        removePropertiesJson:
+            removeProperties != null ? jsonEncode(removeProperties) : null,
+        sessionId: sessionId,
+      );
 
   /// Deletes an entity by its ULID identifier.
   Future<bool> delete(String entityType, String id, [String? sessionId]) async {
