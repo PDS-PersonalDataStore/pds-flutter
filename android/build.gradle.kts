@@ -17,7 +17,7 @@ buildscript {
     }
 }
 
-val pdsClientVersion = "v0.9.0-dev.2"
+val pdsClientVersion = "v0.9.0-dev.3"
 val libsDir = layout.projectDirectory.dir("libs").asFile
 libsDir.mkdirs()
 
@@ -105,6 +105,7 @@ android {
 
 dependencies {
     implementation(files(jarFile))
+    implementation("org.bouncycastle:bcprov-jdk18on:1.80")
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
