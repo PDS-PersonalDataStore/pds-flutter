@@ -46,29 +46,31 @@ class PdsClient {
   /// Gets the current native PDS tracing log level.
   Future<String> getLogLevel() => _platform.getLogLevel();
 
-  /// Stores a record of the given entity type in PDS.
-  Future<String> put(String entityType, Map<String, dynamic> data) async {
-    final req = jsonEncode({
-      'action': 'put',
-      'entity_type': entityType,
-      'data': data,
-    });
-    return executeRawRequest(req);
-  }
+  /// Authenticates with PDS Core using client credentials and establishes a session.
+  Future<String> authenticate([String apiVersion = '1.4.0']) =>
+      _platform.authenticate(apiVersion);
 
-  /// Retrieves a record by entity type and record ID.
-  Future<String?> get(String entityType, String id) async {
-    final req = jsonEncode({
-      'action': 'get',
-      'entity_type': entityType,
-      'id': id,
-    });
-    final res = await executeRawRequest(req);
+  /// Gets the currently active session ID, if established.
+  Future<String?> getSessionId() => _platform.getSessionId();
+
+  /// Terminates the current active or specified session.
+  Future<bool> closeSession([String? sessionId]) =>
+      _platform.closeSession(sessionId);
+
+  /// Stores a record of the given entity type in PDS.
+  /// Formats properties into PDS format and creates entity via client-sdk.
+  Future<String> put(String entityType, Map<String, dynamic> data, [String? sessionId]) =>
+      _platform.putEntity(entityType, jsonEncode(data), sessionId);
+
+  /// Retrieves an entity by its ULID identifier.
+  Future<String?> get(String entityType, String id, [String? sessionId]) async {
+    final res = await _platform.getEntity(id, sessionId);
     return res.isEmpty ? null : res;
   }
 
   /// Queries records of the given entity type with an optional filter.
-  Future<String> query(String entityType, [Map<String, dynamic>? filter]) async {
+  Future<String> query(String entityType, [Map<String, dynamic>? filter, String? sessionId]) async {
+    // In PDS IPC, querying is currently done via GetPendingChanges or custom query filters
     final req = jsonEncode({
       'action': 'query',
       'entity_type': entityType,
@@ -77,15 +79,10 @@ class PdsClient {
     return executeRawRequest(req);
   }
 
-  /// Deletes a record by entity type and ID.
-  Future<bool> delete(String entityType, String id) async {
-    final req = jsonEncode({
-      'action': 'delete',
-      'entity_type': entityType,
-      'id': id,
-    });
-    final res = await executeRawRequest(req);
-    return res.contains('"status":"Success"');
+  /// Deletes an entity by its ULID identifier.
+  Future<bool> delete(String entityType, String id, [String? sessionId]) async {
+    final res = await _platform.deleteEntity(id, sessionId);
+    return !res.contains('"status":"Error"');
   }
 
   /// Stores raw binary data in PDS content-addressed storage (CAS).

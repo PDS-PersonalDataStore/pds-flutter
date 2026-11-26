@@ -43,6 +43,36 @@ class FakePdsHostApi implements PdsHostApi {
   Future<void> clearClientIdentity() async {}
 
   @override
+  Future<String> authenticate(String apiVersion) async => 'sess_123';
+
+  @override
+  Future<String?> getSessionId() async => 'sess_123';
+
+  @override
+  Future<bool> closeSession(String? sessionId) async => true;
+
+  @override
+  Future<String> putEntity(String entityType, String dataJson, String? sessionId) async =>
+      '{"status":"EntityCreated","payload":"ent_123"}';
+
+  @override
+  Future<String> getEntity(String entityId, String? sessionId) async =>
+      '{"status":"Entity","payload":{"id":"$entityId"}}';
+
+  @override
+  Future<String> updateEntity(
+    String entityId,
+    String? setPropertiesJson,
+    String? removePropertiesJson,
+    String? sessionId,
+  ) async =>
+      '{"status":"EntityUpdated","payload":"$entityId"}';
+
+  @override
+  Future<String> deleteEntity(String entityId, String? sessionId) async =>
+      '{"status":"EntityDeleted","payload":"$entityId"}';
+
+  @override
   Future<bool> setLogLevel(String logLevel) async => true;
 
   @override
@@ -183,6 +213,31 @@ void main() {
 
   test('clearClientIdentity', () async {
     await platform.clearClientIdentity();
+  });
+
+  test('authenticate and session management', () async {
+    expect(await platform.authenticate(), 'sess_123');
+    expect(await platform.getSessionId(), 'sess_123');
+    expect(await platform.closeSession(), true);
+  });
+
+  test('entity operations', () async {
+    expect(
+      await platform.putEntity('receipts', '{"store":"Lidl"}'),
+      '{"status":"EntityCreated","payload":"ent_123"}',
+    );
+    expect(
+      await platform.getEntity('ent_123'),
+      '{"status":"Entity","payload":{"id":"ent_123"}}',
+    );
+    expect(
+      await platform.updateEntity('ent_123', setPropertiesJson: '[["store",{"Text":"Biedronka"}]]'),
+      '{"status":"EntityUpdated","payload":"ent_123"}',
+    );
+    expect(
+      await platform.deleteEntity('ent_123'),
+      '{"status":"EntityDeleted","payload":"ent_123"}',
+    );
   });
 
   test('setLogLevel', () async {

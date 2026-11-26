@@ -46,6 +46,31 @@ abstract class PdsHostApi {
   void clearClientIdentity();
 
   @async
+  String authenticate(String apiVersion);
+
+  String? getSessionId();
+
+  @async
+  bool closeSession(String? sessionId);
+
+  @async
+  String putEntity(String entityType, String dataJson, String? sessionId);
+
+  @async
+  String getEntity(String entityId, String? sessionId);
+
+  @async
+  String updateEntity(
+    String entityId,
+    String? setPropertiesJson,
+    String? removePropertiesJson,
+    String? sessionId,
+  );
+
+  @async
+  String deleteEntity(String entityId, String? sessionId);
+
+  @async
   String getPendingChanges(String sessionId, int? limit);
 
   @async

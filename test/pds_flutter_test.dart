@@ -38,6 +38,37 @@ class MockPdsFlutterPlatform
   Future<void> clearClientIdentity() => Future.value();
 
   @override
+  Future<String> authenticate([String apiVersion = '1.4.0']) =>
+      Future.value('sess_123');
+
+  @override
+  Future<String?> getSessionId() => Future.value('sess_123');
+
+  @override
+  Future<bool> closeSession([String? sessionId]) => Future.value(true);
+
+  @override
+  Future<String> putEntity(String entityType, String dataJson, [String? sessionId]) =>
+      Future.value('{"status":"EntityCreated","payload":"ent_123"}');
+
+  @override
+  Future<String> getEntity(String entityId, [String? sessionId]) =>
+      Future.value('{"status":"Entity","payload":{"id":"$entityId"}}');
+
+  @override
+  Future<String> updateEntity(
+    String entityId, {
+    String? setPropertiesJson,
+    String? removePropertiesJson,
+    String? sessionId,
+  }) =>
+      Future.value('{"status":"EntityUpdated","payload":"$entityId"}');
+
+  @override
+  Future<String> deleteEntity(String entityId, [String? sessionId]) =>
+      Future.value('{"status":"EntityDeleted","payload":"$entityId"}');
+
+  @override
   Future<bool> setLogLevel(String logLevel) => Future.value(true);
 
   @override
@@ -159,10 +190,13 @@ void main() {
     await client.clearClientIdentity();
     expect(await client.setLogLevel('trace'), true);
     expect(await client.getLogLevel(), 'debug');
-    expect(
-      await client.registerClient('Test App'),
-      '01J00000000000000000000000',
-    );
+    expect(await client.registerClient('Test App'), '01J00000000000000000000000');
+    expect(await client.authenticate(), 'sess_123');
+    expect(await client.getSessionId(), 'sess_123');
+    expect(await client.put('receipts', {'store': 'Lidl'}), '{"status":"EntityCreated","payload":"ent_123"}');
+    expect(await client.get('receipts', 'ent_123'), '{"status":"Entity","payload":{"id":"ent_123"}}');
+    expect(await client.delete('receipts', 'ent_123'), true);
+    expect(await client.closeSession(), true);
     expect(
       await client.createRelation(
         sessionId: 'session_1',
