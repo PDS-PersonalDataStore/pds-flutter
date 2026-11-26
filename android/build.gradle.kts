@@ -1,4 +1,5 @@
 import java.net.URI
+import java.util.zip.ZipFile
 
 group = "top.tau2c.pds.flutter.pds_flutter"
 version = "1.0-SNAPSHOT"
@@ -22,11 +23,22 @@ libsDir.mkdirs()
 
 val releaseUrl = "https://github.com/PDS-PersonalDataStore/pds-android/releases/download/$pdsClientVersion/client-sdk-release.aar"
 val aarFile = libsDir.resolve("client-sdk-release.aar")
+val jarFile = libsDir.resolve("client-sdk.jar")
 
-if (!aarFile.exists()) {
-    URI(releaseUrl).toURL().openStream().use { input ->
-        aarFile.outputStream().use { output ->
-            input.copyTo(output)
+if (!jarFile.exists()) {
+    if (!aarFile.exists()) {
+        URI(releaseUrl).toURL().openStream().use { input ->
+            aarFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+    }
+    ZipFile(aarFile).use { zip ->
+        val entry = zip.getEntry("classes.jar") ?: error("classes.jar not found in $aarFile")
+        zip.getInputStream(entry).use { input ->
+            jarFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
         }
     }
 }
@@ -92,7 +104,7 @@ android {
 }
 
 dependencies {
-    implementation(files(aarFile))
+    implementation(files(jarFile))
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
