@@ -1,3 +1,10 @@
+## 0.9.0-dev.6
+
+* Support flat JSON object and raw JSON property array in native Android `putEntity` and `updateEntity`.
+* Keep flat map JSON in Dart `PdsClient.put` for SDK conversion.
+* Add `PdsClient.get` with property flattening and `PdsClient.getRaw` for raw JSON access.
+* Add helper methods `PdsClient.flattenEntityJson` and `PdsClient.fromPropertyValue`.
+
 ## 0.9.0-dev.5
 
 * Add automatic typed `PropertyValue` serialization for Dart maps in `PdsClient.put` and `PdsClient.updateEntity`.
